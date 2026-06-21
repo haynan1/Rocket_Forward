@@ -7,6 +7,7 @@ class Goal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     title = db.Column(db.String(160), nullable=False)
     description = db.Column(db.Text)
+    link_url = db.Column(db.String(2048))
     date = db.Column(db.Date, nullable=False, index=True)
     time = db.Column(db.Time)
     has_deadline = db.Column(db.Boolean, nullable=False, default=True)

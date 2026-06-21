@@ -116,6 +116,39 @@ def test_undated_board_backlog_is_limited_to_ten_goals(app, client):
     assert b'11 metas guardadas aqui' in response.data
 
 
+def test_goal_link_is_saved_and_rendered_as_a_shortcut(app, client):
+    _register(client, 'goal-link@rocket.test')
+
+    response = client.post('/goals/new', data={'title': 'Ler documentacao', 'link_url': 'https://example.com/docs', 'has_deadline': 'on'}, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'bi-link-45deg' in response.data
+    with app.app_context():
+        assert Goal.query.filter_by(title='Ler documentacao').first().link_url == 'https://example.com/docs'
+
+
+def test_goal_link_rejects_non_web_address(client):
+    _register(client, 'invalid-link@rocket.test')
+
+    response = client.post('/goals/new', data={'title': 'Link invalido', 'link_url': 'javascript:alert(1)', 'has_deadline': 'on'})
+
+    assert response.status_code == 200
+    assert 'Informe um link válido'.encode() in response.data
+
+
+def test_editing_a_goal_with_an_invalid_link_keeps_the_new_title_on_the_redisplayed_form(app, client):
+    _register(client, 'edit-link@rocket.test')
+    client.post('/goals/new', data={'title': 'Titulo original', 'has_deadline': 'on'}, follow_redirects=True)
+    with app.app_context():
+        goal_id = Goal.query.filter_by(title='Titulo original').first().id
+
+    response = client.post(f'/goals/{goal_id}/edit', data={'title': 'Titulo editado', 'link_url': 'javascript:alert(1)', 'has_deadline': 'on'})
+
+    assert response.status_code == 200
+    assert 'Informe um link válido'.encode() in response.data
+    assert b'value="Titulo editado"' in response.data
+
+
 def test_user_can_save_english_us_as_interface_language(app, client):
     _register(client, 'english@rocket.test')
 

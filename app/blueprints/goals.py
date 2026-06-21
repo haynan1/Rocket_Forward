@@ -5,6 +5,7 @@ from ..extensions import db, limiter
 from ..models import Goal
 from ..services import today,goals_for,can_create,set_status,unlock_achievements
 from ..utils.constants import GOAL_CATEGORIES
+from ..utils.validators import valid_link_url
 bp=Blueprint('goals',__name__,url_prefix='/goals')
 CATEGORIES=GOAL_CATEGORIES
 BOARD_COLUMNS=(('pendente','A fazer'),('em_andamento','Em andamento'),('concluida','Concluída'))
@@ -46,12 +47,14 @@ def edit(id):
     if request.method=='POST': return save_goal(g)
     return render_template('goal_form.html',goal=g,categories=CATEGORIES)
 def save_goal(g):
-    title=request.form.get('title','').strip(); rawdate=request.form.get('date','')
+    title=request.form.get('title','').strip(); rawdate=request.form.get('date','');link_url=request.form.get('link_url','').strip()
     if not title: flash('O título é obrigatório.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
-    # Preenche os campos simples já aqui: se a validação de data/horário abaixo falhar e
+    # Preenche os campos simples já aqui: se a validação de link/data/horário abaixo falhar e
     # o formulário for redesenhado, o que o usuário digitou continua visível em vez de
     # reaparecer como o atributo ainda não definido (None) do objeto recém-criado.
-    g.title=title;g.description=request.form.get('description','').strip() or None;g.priority=request.form.get('priority','media');g.category=request.form.get('category','pessoal');g.status=request.form.get('status','pendente')
+    g.title=title;g.description=request.form.get('description','').strip() or None;g.link_url=link_url or None;g.priority=request.form.get('priority','media');g.category=request.form.get('category','pessoal');g.status=request.form.get('status','pendente')
+    if not valid_link_url(link_url):
+        flash('Informe um link válido que comece com http:// ou https://.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
     g.has_deadline='has_deadline' in request.form;g.show_on_board='show_on_board' in request.form
     if g.has_deadline:
         try: g.date=datetime.strptime(rawdate,'%Y-%m-%d').date() if rawdate else today()

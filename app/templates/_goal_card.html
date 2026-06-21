@@ -3,6 +3,7 @@
   <div class="goal-main">
     <h3>{{row.goal.title}}</h3>
     {% if row.goal.description %}<p>{{row.goal.description}}</p>{% endif %}
+    {% if row.goal.link_url %}<a class="goal-link" href="{{row.goal.link_url}}" target="_blank" rel="noopener noreferrer"><i class="bi bi-link-45deg"></i> Link</a>{% endif %}
     <div class="tags">
       <span class="status status-{{row.status}}">{{ {'pendente':'Pendente','em_andamento':'Em andamento','concluida':'Concluída'}[row.status] }}</span>
       <span>{{row.goal.category}}</span><span class="{{row.goal.priority}}">{{row.goal.priority}}</span>

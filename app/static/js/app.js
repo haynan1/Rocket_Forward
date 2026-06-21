@@ -95,6 +95,11 @@ document.querySelectorAll('.board').forEach(board=>{
  const csrfToken=document.querySelector('meta[name="csrf-token"]').content;
  let dragged=null;
  const updateCount=list=>{list.closest('.board-col').querySelector('.board-col-head b').textContent=list.querySelectorAll('.board-card').length;};
+ const updateEmptyState=list=>{
+  const empty=list.querySelector('.board-empty');
+  if(list.querySelector('.board-card')){empty?.remove();return;}
+  if(!empty){const message=document.createElement('p');message.className='board-empty';message.textContent='Nenhuma meta nesta coluna.';list.appendChild(message);}
+ };
  board.querySelectorAll('.board-card').forEach(card=>{
   card.addEventListener('dragstart',()=>{dragged=card;card.classList.add('dragging');});
   card.addEventListener('dragend',()=>card.classList.remove('dragging'));
@@ -108,13 +113,13 @@ document.querySelectorAll('.board').forEach(board=>{
    const from=dragged.closest('.board-list');
    if(from===list)return;
    const id=dragged.dataset.id;const status=list.dataset.status;const occurrence=dragged.dataset.occurrence;
-   const moved=dragged;from.removeChild(moved);list.appendChild(moved);moved.classList.add('board-card-settling');setTimeout(()=>moved.classList.remove('board-card-settling'),350);updateCount(from);updateCount(list);
+   const moved=dragged;from.removeChild(moved);list.appendChild(moved);updateEmptyState(from);updateEmptyState(list);moved.classList.add('board-card-settling');setTimeout(()=>moved.classList.remove('board-card-settling'),350);updateCount(from);updateCount(list);
    const update={status};if(occurrence)update.occurrence=occurrence;
    fetch(`/api/goals/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(update)})
     .then(r=>{if(!r.ok)throw new Error();return r.json();})
     .then(data=>(data.achievements||[]).forEach(achievement=>showToast(`🏆 Conquista desbloqueada: ${achievement.title}`,'success')))
     .catch(()=>{
-     list.removeChild(dragged);from.appendChild(dragged);updateCount(from);updateCount(list);
+     list.removeChild(dragged);from.appendChild(dragged);updateEmptyState(from);updateEmptyState(list);updateCount(from);updateCount(list);
      showToast('Não foi possível mover a meta.','error');
     });
   });
@@ -139,6 +144,13 @@ if(deadlineToggle){
  }
  const updateDeadline=()=>form.classList.toggle('no-deadline',!deadlineToggle.checked);
  updateDeadline();deadlineToggle.addEventListener('change',updateDeadline);
+ const linkToggle=document.getElementById('has-link');
+ const linkFields=document.getElementById('link-fields');
+ const linkInput=form.querySelector('input[name="link_url"]');
+ if(linkToggle&&linkFields&&linkInput){
+  const updateLink=()=>{linkFields.hidden=!linkToggle.checked;linkInput.disabled=!linkToggle.checked;};
+  updateLink();linkToggle.addEventListener('change',updateLink);
+ }
  const recurrence=form.querySelector('select[name="recurrence_type"]');
  const updateRecurrence=()=>{
   const value=recurrence.value;
