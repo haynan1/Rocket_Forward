@@ -10,6 +10,7 @@ class Goal(db.Model):
     date = db.Column(db.Date, nullable=False, index=True)
     time = db.Column(db.Time)
     has_deadline = db.Column(db.Boolean, nullable=False, default=True)
+    show_on_board = db.Column(db.Boolean, nullable=False, default=True)
     priority = db.Column(db.String(10), nullable=False, default='media')
     category = db.Column(db.String(30), nullable=False, default='pessoal')
     status = db.Column(db.String(20), nullable=False, default='pendente')

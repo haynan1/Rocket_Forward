@@ -197,6 +197,8 @@ Faça uma cópia dele de vez em quando para uma pasta segura ou um pendrive. Ass
 
 ## 🪟 Ligar junto com o computador
 
+> **Isto é opcional.** O Rocket Forward não precisa de nenhum arquivo `.bat` para funcionar. Para usar normalmente, basta abrir o terminal e executar `python run.py`.
+
 Existe um arquivo chamado:
 
 ```text
@@ -216,6 +218,8 @@ Para fazer isso acontecer sempre que o Windows ligar:
 > Primeiro, rode `python run.py` uma vez para confirmar que tudo está funcionando.
 
 ## 🛑 Parar o Rocket Forward
+
+> **Isto também é opcional.** O jeito mais simples de parar o sistema é apertar `Ctrl + C` no terminal que está aberto. Os scripts abaixo são só ajudantes para quem prefere clicar em um arquivo.
 
 Se o terminal do Rocket Forward estiver aberto, aperte:
 

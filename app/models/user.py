@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     avatar_path = db.Column(db.String(255))
     theme_mode = db.Column(db.String(10), nullable=False, default='dark')
+    locale = db.Column(db.String(10), nullable=False, default='pt-BR')
     motivational_phrases_enabled = db.Column(db.Boolean, nullable=False, default=True)
     show_undated_on_board = db.Column(db.Boolean, nullable=False, default=False)
     phrase_interval_minutes = db.Column(db.Integer, nullable=False, default=30)

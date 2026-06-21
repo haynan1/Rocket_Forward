@@ -1,5 +1,6 @@
 import secrets
 from flask import Flask, request
+from flask_login import current_user
 from flask_migrate import upgrade as migrate_upgrade
 from sqlalchemy import text
 from config import Config
@@ -34,6 +35,10 @@ def create_app(config_object=Config):
     db.init_app(app); migrate.init_app(app, db); login_manager.init_app(app)
     csrf.init_app(app); limiter.init_app(app)
     from .models import User
+    from .i18n import EN_US, current_locale, translate
+    @app.context_processor
+    def inject_translations():
+        return {'_': translate, 'current_locale': current_locale(), 'translations': EN_US}
     @login_manager.user_loader
     def load_user(user_id): return db.session.get(User, int(user_id))
     from .blueprints import auth, main, goals, api
@@ -65,6 +70,18 @@ def create_app(config_object=Config):
             response.headers['Cache-Control'] = 'no-store, max-age=0, must-revalidate'
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '0'
+        return response
+
+    @app.after_request
+    def sync_locale_cookie(response):
+        # Espelha o idioma do usuário logado num cookie para que as telas
+        # de login/cadastro/recuperação (sem usuário autenticado) continuem
+        # respeitando a preferência depois do logout.
+        if request.endpoint != 'static' and current_user.is_authenticated:
+            response.set_cookie(
+                'locale', current_user.locale, max_age=31536000,
+                httponly=True, samesite='Lax', secure=app.config.get('SESSION_COOKIE_SECURE', False),
+            )
         return response
 
     _run_migrations(app)

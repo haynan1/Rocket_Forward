@@ -2,12 +2,12 @@ from ..utils.constants import GOAL_CATEGORIES
 
 CATEGORY_TITLES = {
     'estudos': 'Mente em expansão', 'trabalho': 'Missão profissional', 'saude': 'Corpo em órbita',
-    'financas': 'Cofre estelar', 'espiritual': 'Conexão com o cosmos', 'pessoal': 'Jornada interior',
+    'financas': 'Cofre estelar', 'espiritual': 'Cuidado interior', 'pessoal': 'Jornada interior',
     'familia': 'Tripulação de casa', 'empreendedorismo': 'Fundador de mundos', 'outros': 'Território inexplorado',
 }
 CATEGORY_ICONS = {
     'estudos': 'book-fill', 'trabalho': 'briefcase-fill', 'saude': 'heart-pulse-fill',
-    'financas': 'piggy-bank-fill', 'espiritual': 'stars', 'pessoal': 'person-fill',
+    'financas': 'piggy-bank-fill', 'espiritual': 'heart-fill', 'pessoal': 'person-fill',
     'familia': 'people-fill', 'empreendedorismo': 'rocket-fill', 'outros': 'compass-fill',
 }
 

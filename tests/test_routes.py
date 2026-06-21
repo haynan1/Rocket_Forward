@@ -82,17 +82,62 @@ def test_phrase_personalization_is_premium_only(app, client):
         assert MotivationalPhrase.query.filter_by(user_id=user.id, text='Um passo de cada vez.').count() == 1
 
 
-def test_user_can_choose_to_show_undated_goals_on_board(app, client):
+def test_user_can_choose_per_goal_to_show_undated_goals_on_board(app, client):
     _register(client, 'undated-board@rocket.test')
     with app.app_context():
         user = User.query.filter_by(email='undated-board@rocket.test').first()
-        db.session.add(Goal(user=user, title='meta sem prazo', date=today(), has_deadline=False))
+        db.session.add(Goal(user=user, title='meta sem prazo', date=today(), has_deadline=False, show_on_board=False))
         db.session.commit()
 
     assert b'meta sem prazo' not in client.get('/goals/board').data
-    client.post('/profile', data={'name': 'A', 'show_undated_on_board': 'on'}, follow_redirects=True)
+    with app.app_context():
+        goal = Goal.query.filter_by(title='meta sem prazo').first()
+        goal.show_on_board = True
+        db.session.commit()
 
-    assert b'meta sem prazo' in client.get('/goals/board').data
+    response = client.get('/goals/board')
+    assert b'meta sem prazo' in response.data
+    assert b'Backlog sem prazo' in response.data
+
+
+def test_undated_board_backlog_is_limited_to_ten_goals(app, client):
+    _register(client, 'backlog@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='backlog@rocket.test').first()
+        for index in range(11):
+            db.session.add(Goal(user=user, title=f'backlog {index}', date=today(), has_deadline=False, show_on_board=True))
+        db.session.commit()
+
+    response = client.get('/goals/board')
+
+    assert b'backlog 0' in response.data
+    assert b'backlog 9' in response.data
+    assert b'backlog 10' not in response.data
+    assert b'11 metas guardadas aqui' in response.data
+
+
+def test_user_can_save_english_us_as_interface_language(app, client):
+    _register(client, 'english@rocket.test')
+
+    response = client.post('/profile', data={'name': 'A', 'locale': 'en-US'}, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'data-locale="en-US"' in response.data
+    with app.app_context():
+        assert User.query.filter_by(email='english@rocket.test').first().locale == 'en-US'
+
+
+def test_login_screen_keeps_english_after_logout(client):
+    _register(client, 'english2@rocket.test')
+    client.post('/profile', data={'name': 'A', 'locale': 'en-US'})
+
+    _logout(client)
+    response = client.get('/auth/login')
+
+    # a tradução acontece no cliente a partir de data-locale/data-translations;
+    # o que o servidor precisa garantir é que a preferência salva sobrevive ao logout
+    assert b'data-locale="en-US"' in response.data
+    assert b'lang="en-US"' in response.data
 
 
 def test_goal_filter_keeps_the_selected_value(app, client):

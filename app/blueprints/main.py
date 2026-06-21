@@ -68,7 +68,7 @@ def history():
 def profile():
     if request.method=='POST':
         current_user.name=request.form.get('name','').strip() or current_user.name
-        current_user.theme_mode=request.form.get('theme_mode',current_user.theme_mode);current_user.motivational_phrases_enabled='phrases' in request.form;current_user.show_undated_on_board='show_undated_on_board' in request.form;current_user.notifications_enabled='notifications' in request.form;db.session.commit();flash('Perfil atualizado.','success');return redirect(url_for('main.profile'))
+        current_user.theme_mode=request.form.get('theme_mode',current_user.theme_mode);current_user.locale=request.form.get('locale','pt-BR') if request.form.get('locale') in ('pt-BR','en-US') else 'pt-BR';current_user.motivational_phrases_enabled='phrases' in request.form;current_user.notifications_enabled='notifications' in request.form;db.session.commit();flash('Perfil atualizado.','success');return redirect(url_for('main.profile'))
     return render_template('profile.html',stats=stats(current_user),unlocked=UserAchievement.query.filter_by(user_id=current_user.id).count())
 @bp.route('/phrases',methods=['GET','POST'])
 @login_required

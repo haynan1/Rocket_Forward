@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="{{ current_user.theme_mode if current_user.is_authenticated else 'dark' }}">
+<html lang="{{current_locale}}" data-theme="{{ current_user.theme_mode if current_user.is_authenticated else 'dark' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark light">
@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=config['ASSET_VERSION']) }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha256-/tanOfjQ8GhxdN5s0UdF/A/HgJFEqxE9IpCKJr8Nf+o=" crossorigin="anonymous"></script>
 </head>
-<body class="{{ 'auth-page' if not current_user.is_authenticated else '' }}">
+<body class="{{ 'auth-page' if not current_user.is_authenticated else '' }}" data-locale="{{current_locale}}" data-translations='{{translations|tojson}}'>
 {% if current_user.is_authenticated %}
   {% set endpoint = request.endpoint %}
   <aside id="sidebar">

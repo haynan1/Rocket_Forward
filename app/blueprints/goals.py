@@ -22,10 +22,14 @@ def index():
 @bp.get('/board')
 @login_required
 def board():
-    rows=goals_for(current_user,today(),today(),include_undated=current_user.show_undated_on_board)
+    rows=[row for row in goals_for(current_user,today(),today(),include_undated=True) if row['goal'].show_on_board]
     rows.sort(key=lambda row:(PRIORITY_ORDER.get(row['goal'].priority,1),row['goal'].time or datetime.min.time()))
-    columns=[{'status':key,'label':label,'goals':[row for row in rows if row['status']==key]} for key,label in BOARD_COLUMNS]
-    return render_template('goals_board.html',columns=columns,categories=CATEGORIES)
+    today_rows=[row for row in rows if row['date']]
+    undated_rows=[row for row in rows if not row['date']]
+    columns=[{'status':key,'label':label,'goals':[row for row in today_rows if row['status']==key]} for key,label in BOARD_COLUMNS]
+    undated_preview=undated_rows[:10]
+    undated_columns=[{'status':key,'label':label,'goals':[row for row in undated_preview if row['status']==key]} for key,label in BOARD_COLUMNS]
+    return render_template('goals_board.html',columns=columns,undated_columns=undated_columns,undated_total=len(undated_rows),undated_preview_count=len(undated_preview),categories=CATEGORIES)
 @bp.route('/new',methods=['GET','POST'])
 @login_required
 @limiter.limit('30 per minute', methods=['POST'])
@@ -48,7 +52,7 @@ def save_goal(g):
     # o formulário for redesenhado, o que o usuário digitou continua visível em vez de
     # reaparecer como o atributo ainda não definido (None) do objeto recém-criado.
     g.title=title;g.description=request.form.get('description','').strip() or None;g.priority=request.form.get('priority','media');g.category=request.form.get('category','pessoal');g.status=request.form.get('status','pendente')
-    g.has_deadline='has_deadline' in request.form
+    g.has_deadline='has_deadline' in request.form;g.show_on_board='show_on_board' in request.form
     if g.has_deadline:
         try: g.date=datetime.strptime(rawdate,'%Y-%m-%d').date() if rawdate else today()
         except ValueError: flash('Informe uma data válida.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)

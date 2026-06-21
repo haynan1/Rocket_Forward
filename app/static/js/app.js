@@ -1,10 +1,32 @@
+const locale=document.body.dataset.locale||'pt-BR';
+const translations=JSON.parse(document.body.dataset.translations||'{}');
+const localize=value=>{
+ if(locale!=='en-US'||!value)return value;
+ if(translations[value])return translations[value];
+ if(value.startsWith('Conquista desbloqueada:'))return value.replace('Conquista desbloqueada:',translations['Conquista desbloqueada:']||'Achievement unlocked:');
+ return value;
+};
+if(locale==='en-US'){
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ const nodes=[];let node;
+ while(node=walker.nextNode()){
+  if(['SCRIPT','STYLE'].includes(node.parentElement?.tagName))continue;
+  const key=node.nodeValue.trim();if(translations[key])nodes.push([node,key]);
+ }
+ nodes.forEach(([text,key])=>{text.nodeValue=text.nodeValue.replace(key,translations[key]);});
+ document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(element=>{
+  ['placeholder','title','aria-label'].forEach(attribute=>{
+   const value=element.getAttribute(attribute);if(translations[value])element.setAttribute(attribute,translations[value]);
+  });
+ });
+}
 const toastQueue=[];
 let toastVisible=false;
 function showNextToast(){
  if(toastVisible||!toastQueue.length)return;
  toastVisible=true;
  const {msg,type}=toastQueue.shift();
- const t=document.createElement('div');t.className='toast'+(type?' '+type:'');t.textContent=msg;
+ const t=document.createElement('div');t.className='toast'+(type?' '+type:'');t.textContent=localize(msg);
  if(msg.includes('Conquista desbloqueada')){
   t.classList.add('achievement-toast');
   ['#ffd36b','#a99bff','#ff8e76','#78d9bb','#fff'].forEach((color,index)=>{
@@ -69,8 +91,7 @@ if(authPage&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
   if(backgrounds[current])document.body.classList.add(backgrounds[current]);
  },30000);
 }
-const board=document.querySelector('.board');
-if(board){
+document.querySelectorAll('.board').forEach(board=>{
  const csrfToken=document.querySelector('meta[name="csrf-token"]').content;
  let dragged=null;
  const updateCount=list=>{list.closest('.board-col').querySelector('.board-col-head b').textContent=list.querySelectorAll('.board-card').length;};
@@ -98,7 +119,7 @@ if(board){
     });
   });
  });
-}
+});
 const sidebarToggle=document.getElementById('sidebar-toggle');
 if(sidebarToggle){
  const setSidebarState=()=>{const collapsed=document.body.classList.contains('sidebar-collapsed');sidebarToggle.setAttribute('aria-expanded',String(!collapsed));sidebarToggle.title=collapsed?'Expandir painel lateral':'Recolher painel lateral'};
@@ -201,3 +222,83 @@ function enhanceSelect(select){
  document.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});
 }
 document.querySelectorAll('select').forEach(enhanceSelect);
+
+function enhanceTimeInput(input){
+ const wrap=document.createElement('div');wrap.className='time-select';
+ input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+ input.tabIndex=-1;input.setAttribute('aria-hidden','true');input.classList.add('time-native');
+ const trigger=document.createElement('button');
+ trigger.type='button';trigger.className='time-trigger';
+ trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');
+ if(input.disabled)trigger.disabled=true;
+ trigger.innerHTML='<i class="bi bi-clock"></i><span class="time-trigger-label"></span><i class="bi bi-chevron-down time-trigger-caret"></i>';
+ const label=trigger.querySelector('.time-trigger-label');
+ const panel=document.createElement('div');panel.className='time-options';panel.hidden=true;
+ panel.innerHTML='<div class="time-cols"><ul class="time-col" data-unit="hour" role="listbox" aria-label="Hora"></ul><div class="time-col-sep">:</div><ul class="time-col" data-unit="minute" role="listbox" aria-label="Minuto"></ul></div><div class="time-options-foot"><button type="button" class="time-clear">Limpar</button><button type="button" class="time-done">Concluído</button></div>';
+ wrap.append(trigger,panel);
+ const hourCol=panel.querySelector('[data-unit="hour"]');
+ const minuteCol=panel.querySelector('[data-unit="minute"]');
+ const pad=n=>String(n).padStart(2,'0');
+ const buildCells=(col,max)=>{
+  for(let i=0;i<max;i++){
+   const li=document.createElement('li');
+   li.className='time-cell';li.textContent=pad(i);li.dataset.value=pad(i);li.tabIndex=-1;li.setAttribute('role','option');
+   col.appendChild(li);
+  }
+  return [...col.children];
+ };
+ const hourCells=buildCells(hourCol,24);
+ const minuteCells=buildCells(minuteCol,60);
+ const placeholderLabel=input.placeholder||'--:--';
+ const sync=()=>{
+  const value=input.value;
+  if(value){
+   const [h,m]=value.split(':');
+   label.textContent=`${h}:${m}`;label.classList.remove('placeholder');
+   hourCells.forEach(li=>li.classList.toggle('selected',li.dataset.value===h));
+   minuteCells.forEach(li=>li.classList.toggle('selected',li.dataset.value===m));
+  } else {
+   label.textContent=placeholderLabel;label.classList.add('placeholder');
+   [...hourCells,...minuteCells].forEach(li=>li.classList.remove('selected'));
+  }
+ };
+ sync();
+ const close=()=>{panel.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.classList.remove('open');};
+ const revealSelection=col=>{
+  const sel=col.querySelector('.selected')||col.firstElementChild;
+  if(sel)col.scrollTop=sel.offsetTop-col.clientHeight/2+sel.offsetHeight/2;
+ };
+ const open=()=>{
+  if(trigger.disabled)return;
+  document.querySelectorAll('.time-options, .select-options').forEach(p=>{if(p!==panel){p.hidden=true;p.previousElementSibling?.classList?.remove('open');}});
+  panel.hidden=false;trigger.setAttribute('aria-expanded','true');trigger.classList.add('open');
+  revealSelection(hourCol);revealSelection(minuteCol);
+ };
+ trigger.addEventListener('click',()=>panel.hidden?open():close());
+ trigger.addEventListener('keydown',e=>{
+  if(['ArrowDown','ArrowUp','Enter',' '].includes(e.key)){e.preventDefault();open();}
+  else if(e.key==='Escape')close();
+ });
+ const setUnit=(unit,value)=>{
+  const [h,m]=(input.value||'00:00').split(':');
+  input.value=unit==='hour'?`${value}:${m}`:`${h}:${value}`;
+  sync();
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+ };
+ [[hourCells,'hour'],[minuteCells,'minute']].forEach(([cells,unit])=>{
+  cells.forEach((li,i)=>{
+   li.addEventListener('click',()=>setUnit(unit,li.dataset.value));
+   li.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();li.click();}
+    else if(e.key==='ArrowDown'){e.preventDefault();(cells[i+1]||li).focus();}
+    else if(e.key==='ArrowUp'){e.preventDefault();(cells[i-1]||li).focus();}
+    else if(e.key==='Escape'){close();trigger.focus();}
+   });
+  });
+ });
+ panel.querySelector('.time-clear').addEventListener('click',()=>{input.value='';sync();input.dispatchEvent(new Event('change',{bubbles:true}));close();trigger.focus();});
+ panel.querySelector('.time-done').addEventListener('click',()=>{close();trigger.focus();});
+ input.addEventListener('change',sync);
+ document.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});
+}
+document.querySelectorAll('input[type="time"]').forEach(enhanceTimeInput);

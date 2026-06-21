@@ -91,5 +91,5 @@ def profile_api():
   d=request.get_json() or {}
   name=d.get('name',current_user.name)
   if not str(name).strip() or len(str(name))>MAX_NAME_LEN: return jsonify(error=f'Nome obrigatório, até {MAX_NAME_LEN} caracteres.'),400
-  current_user.name=name;current_user.theme_mode=d.get('theme_mode',current_user.theme_mode);db.session.commit()
- return jsonify(name=current_user.name,theme_mode=current_user.theme_mode,is_premium=current_user.is_premium)
+  current_user.name=name;current_user.theme_mode=d.get('theme_mode',current_user.theme_mode);current_user.locale=d.get('locale',current_user.locale) if d.get('locale',current_user.locale) in ('pt-BR','en-US') else current_user.locale;db.session.commit()
+ return jsonify(name=current_user.name,theme_mode=current_user.theme_mode,locale=current_user.locale,is_premium=current_user.is_premium)
