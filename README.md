@@ -1,160 +1,289 @@
 # 🚀 Rocket Forward
 
-> Um pequeno painel para transformar coisas que você quer fazer em missões do dia.
+> Um foguete de tarefas: você escreve uma missão, faz a missão e vê sua jornada crescer.
 
-Pense assim: você escreve uma missão, faz a missão e ganha XP. É como cuidar de um foguete: um passinho por vez leva você mais longe. 🌟
+## 🌟 O que é isto?
 
-## ✨ O que dá para fazer?
+O Rocket Forward ajuda você a lembrar das coisas que quer fazer.
 
-- Criar metas para hoje ou para outro dia.
-- Marcar metas como **pendente**, **em andamento** ou **concluída**.
-- Repetir uma meta em dias úteis, finais de semana ou todos os dias.
-- Ver as missões de hoje no **Início** e na **Esteira**.
-- Ganhar XP e desbloquear conquistas ao concluir missões.
-- Acompanhar sequência, histórico e relatórios.
+Imagine que cada tarefa é uma pequena missão:
 
-## ▶️ Como abrir o foguete
+- “Ler um livro” 📚
+- “Fazer a lição” ✏️
+- “Beber água” 💧
+- “Arrumar o quarto” 🧸
 
-Você vai precisar de um computador com **Python 3.10 ou mais novo** instalado.
+Quando você termina uma missão, marca como concluída. Assim, ganha XP, conquista medalhas e tenta manter uma sequência de dias produtivos.
 
-### 1. Prepare a chave secreta
+## 🧭 O que tem no foguete?
 
-Na pasta do projeto, faça uma cópia do arquivo de exemplo:
+| Lugar | O que ele faz |
+| --- | --- |
+| **Início** | Mostra as missões de hoje. |
+| **Metas** | Mostra todas as suas missões e os filtros. |
+| **Esteira** | Organiza as missões de hoje em “A fazer”, “Em andamento” e “Concluída”. |
+| **Plano** | Mostra as missões da semana ou do mês. |
+| **Histórico** | Mostra os dias em que você avançou. |
+| **Perfil** | Guarda suas preferências, foto e tema. |
+| **Conquistas** | Mostra as medalhas que você desbloqueou. |
+
+## ▶️ Como abrir o Rocket Forward
+
+Você precisa ter o **Python** instalado no computador. Python é uma ferramenta que faz o foguete funcionar.
+
+### Passo 1: faça a chave secreta
+
+Na pasta do Rocket Forward, copie o arquivo de exemplo:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Agora abra o arquivo `.env` com o Bloco de Notas e coloque uma chave depois de `SECRET_KEY=`.
+Agora abra o arquivo chamado `.env` com o Bloco de Notas.
 
-Para criar uma chave, rode este comando e copie o resultado:
+Crie uma chave com este comando:
 
 ```powershell
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Exemplo de como o começo do `.env` deve ficar:
+Copie o resultado e coloque depois do sinal `=`:
 
 ```env
 SECRET_KEY=cole_a_chave_grande_aqui
 ```
 
-> Não mostre essa chave para outras pessoas. Ela é a senha da porta do foguete.
+> A chave secreta é como a chave da porta de casa. Não mostre para outras pessoas.
 
-### 2. Ligue o programa
+### Passo 2: ligue o foguete
+
+Abra o PowerShell dentro da pasta do projeto e escreva:
 
 ```powershell
 python run.py
 ```
 
-Na primeira vez, o projeto prepara sozinho uma caixinha com as ferramentas de que precisa (`venv`) e instala tudo.
+Na primeira vez, o projeto prepara sozinho uma caixinha de ferramentas chamada `venv`. Isso pode demorar alguns minutos. Depois, é só esperar a mensagem de que o servidor está funcionando.
 
-### 3. Abra no navegador
+### Passo 3: abra a página
 
-Com o programa ligado, abra:
+Abra o navegador e visite:
 
 ```text
 http://127.0.0.1:5000
 ```
 
-Pronto! Crie sua conta e escolha uma primeira missão.
+Pronto! Agora você pode criar uma conta e começar sua jornada. ✨
 
-Para parar o programa, volte ao terminal e aperte `Ctrl + C`.
-
-### Esqueceu a senha?
-
-Na tela de entrada, clique em **Esqueci minha senha**. O Rocket Forward envia um link que vale por uma hora para você criar uma nova senha.
-
-No computador local, configure as opções `SMTP_...` no arquivo `.env` para receber esse link por e-mail. Sem e-mail configurado, o programa registra o link temporário apenas no terminal.
-
-## 🧑‍🚀 Como usar
+## 🧑‍🚀 Como brincar de missões
 
 1. Clique em **Nova meta**.
-2. Escreva uma coisa pequena para fazer, como “Ler 10 páginas”.
-3. A data começa em **hoje**. Você pode trocar se quiser.
-4. Salve a meta.
-5. Quando terminar, marque o círculo da meta.
-6. Veja o XP, a sequência e as conquistas crescerem.
+2. Escreva uma missão pequena, por exemplo: “Guardar os brinquedos”.
+3. A data começa em **hoje**.
+4. Clique em **Salvar meta**.
+5. Quando terminar, marque o círculo da missão.
+6. Veja seu XP e suas conquistas crescerem.
 
-### O que cada tela faz?
+### O que significam os status?
 
-| Tela | Para que serve |
-| --- | --- |
-| **Início** | Mostra as missões de hoje. |
-| **Metas** | Mostra todas as suas metas e permite filtrar. |
-| **Esteira** | Organiza somente as metas de hoje em colunas de status. |
-| **Plano** | Mostra as metas da semana ou do mês. |
-| **Histórico** | Mostra seu avanço recente. |
-| **Perfil** | Altera nome, foto, tema e preferências. |
+- **Pendente:** ainda não começou.
+- **Em andamento:** você está fazendo.
+- **Concluída:** você terminou. 🎉
 
-## 🏆 XP e conquistas
+Na **Esteira**, você pode arrastar as missões entre essas três colunas.
 
-- Criar uma meta pode desbloquear conquistas de criação, como **Primeiro lançamento**.
-- Concluir uma meta dá XP.
-- Concluir missões em dias seguidos cria uma sequência.
-- Quando uma conquista é desbloqueada, um aviso aparece na tela.
+### Metas que se repetem
 
-## 👨‍🔧 Para quem cuida do projeto
+Você pode dizer que uma missão acontece:
 
-### Rodar os testes
+- Só uma vez.
+- Em dias úteis.
+- Nos finais de semana.
+- Por alguns dias.
+- Todos os dias.
+
+O Rocket Forward mostra apenas os campos que você precisa para cada escolha. Assim a tela não fica cheia de coisas sem utilidade.
+
+### Missões sem prazo
+
+Algumas coisas não precisam ser feitas em um dia certo, como “Estudar inglês”.
+
+No **Perfil**, existe a opção:
+
+```text
+Metas sem prazo na Esteira
+```
+
+Se ligar essa opção, essas missões também aparecem na Esteira. Se deixar desligada, a Esteira mostra apenas as missões de hoje.
+
+## ⭐ XP, sequência e conquistas
+
+### XP
+
+Você ganha XP quando conclui uma meta. Criar uma missão não dá XP, porque o prêmio é por fazer a missão.
+
+### Sequência
+
+Se você concluir pelo menos uma meta hoje, amanhã e depois amanhã, sua sequência cresce:
+
+```text
+Dia 1 → Dia 2 → Dia 3 🔥
+```
+
+O programa não precisa ficar ligado para contar a sequência. Ele guarda os dias que você concluiu missões e calcula tudo quando você abre o Rocket Forward de novo.
+
+### Conquistas
+
+Algumas ações dão medalhas, como criar a primeira meta ou concluir muitas missões. Quando uma conquista aparece, o Rocket Forward mostra um aviso na tela.
+
+## 💬 Frases motivacionais
+
+No Perfil, você pode ligar ou desligar as frases motivacionais.
+
+Quem tem **Premium** também pode:
+
+- Ver as frases que já existem.
+- Criar frases próprias.
+- Apagar as frases próprias.
+- Escolher se elas mudam a cada 1, 5, 15, 30 ou 60 minutos.
+
+As frases aparecem no Início e trocam sozinhas enquanto a página está aberta.
+
+## 👑 O que é Premium?
+
+Premium é a parte especial do foguete. Nesta versão de demonstração, ela pode ser ligada sem pagar de verdade.
+
+Ela libera recursos como:
+
+- Frases personalizadas.
+- Escolha do tempo de troca das frases.
+- Lembretes.
+
+No arquivo `.env`, esta opção deixa o botão de demonstração ligado:
+
+```env
+DEMO_MODE=1
+```
+
+## 🔐 Esqueci minha senha
+
+Na tela de entrada, clique em **Esqueci minha senha**.
+
+O sistema cria um link que vale por uma hora para você criar outra senha.
+
+Para receber o link por e-mail, um adulto precisa configurar as opções `SMTP_...` no arquivo `.env`. Sem essa configuração, o link aparece apenas no terminal onde o Rocket Forward está rodando.
+
+## 🖼️ Imagens do login
+
+As imagens do fundo da tela de entrada ficam aqui:
+
+```text
+app/static/images/login/
+```
+
+Elas trocam automaticamente a cada 30 segundos. O formulário fica em cima com uma camada escura para você conseguir ler tudo.
+
+## 💾 Onde ficam as missões?
+
+As informações ficam guardadas neste arquivo:
+
+```text
+instance/rocket_forward.db
+```
+
+Esse arquivo é como o baú onde ficam suas metas, perfil e progresso.
+
+Faça uma cópia dele de vez em quando para uma pasta segura ou um pendrive. Assim suas missões ficam protegidas.
+
+## 🪟 Ligar junto com o computador
+
+Existe um arquivo chamado:
+
+```text
+iniciar_rocket_forward.bat
+```
+
+Ele liga o Rocket Forward minimizado.
+
+Para fazer isso acontecer sempre que o Windows ligar:
+
+1. Clique com o botão direito em `iniciar_rocket_forward.bat`.
+2. Escolha **Criar atalho**.
+3. Aperte `Windows + R`.
+4. Escreva `shell:startup` e aperte `Enter`.
+5. Coloque o atalho dentro da pasta que abriu.
+
+> Primeiro, rode `python run.py` uma vez para confirmar que tudo está funcionando.
+
+## 🛑 Parar o Rocket Forward
+
+Se o terminal do Rocket Forward estiver aberto, aperte:
+
+```text
+Ctrl + C
+```
+
+Também existe este ajudante:
+
+```text
+parar_servidor_flask.bat
+```
+
+Ele procura quem está usando a porta `5000`, mostra o nome do processo e pergunta se você quer parar.
+
+Para parar um programa em outra porta, use:
+
+```powershell
+.\parar_servidor_flask.ps1 -Port 5001
+```
+
+> Olhe o nome do processo antes de responder `S`. Assim você não para outro programa sem querer.
+
+## 🧰 Para quem cuida do foguete
+
+Esta parte é para adultos que gostam de mexer no código.
+
+### Testar se está tudo bem
 
 ```powershell
 .\venv\Scripts\python.exe -m pytest -q
 ```
 
-### Usar uma conta de demonstração
-
-Depois de executar o projeto uma vez:
+### Criar uma conta de demonstração
 
 ```powershell
 .\venv\Scripts\python.exe -m flask --app run.py demo-user
 ```
 
-Entre com:
+Depois entre com:
 
 ```text
 E-mail: demo@rocket.forward
 Senha: foguete123
 ```
 
-### Onde as coisas ficam?
+### Onde ficam as peças do foguete?
 
-| Pasta ou arquivo | O que guarda |
+| Pasta | Para que serve |
 | --- | --- |
-| `app/blueprints/` | As páginas e as rotas do sistema. |
-| `app/models/` | Os formatos dos dados, como usuário e meta. |
-| `app/services/` | As regras de XP, sequência, recorrência e conquistas. |
-| `app/templates/` | As telas em HTML. |
-| `app/static/` | Cores, estilos, JavaScript e imagens. |
-| `tests/` | Testes automáticos. |
-| `instance/rocket_forward.db` | O banco local com as informações do programa. |
+| `app/blueprints/` | As páginas e os caminhos do site. |
+| `app/models/` | Os formatos das informações guardadas. |
+| `app/services/` | As regras de metas, XP, frases e conquistas. |
+| `app/templates/` | As telas que aparecem no navegador. |
+| `app/static/` | Cores, animações, JavaScript e imagens. |
+| `migrations/` | As mudanças no baú de dados. |
+| `tests/` | Os testes automáticos. |
 
-### Banco de dados
+### Banco de dados maior
 
-Por padrão, o Rocket Forward guarda os dados no próprio computador usando SQLite. Para uma instalação maior, é possível trocar para PostgreSQL no arquivo `.env`:
+Por padrão, o projeto usa o banco local SQLite. Um adulto pode trocar para PostgreSQL no `.env`:
 
 ```env
 DATABASE_URL=postgresql://usuario:senha@localhost/rocket_forward
 ```
 
-As atualizações do banco são aplicadas automaticamente ao iniciar o projeto.
+As mudanças necessárias no banco são aplicadas automaticamente quando o projeto liga.
 
-### Modo de demonstração
+---
 
-No `.env`, esta opção deixa o botão Premium funcionar sem pagamento real:
-
-```env
-DEMO_MODE=1
-```
-
-Em um sistema de verdade com pagamento, use `DEMO_MODE=0`.
-
-## 💾 Cuide dos seus dados
-
-Como o banco é local, fazer uma cópia deste arquivo protege suas metas:
-
-```text
-instance/rocket_forward.db
-```
-
-É só copiar esse arquivo para uma pasta segura de vez em quando. Assim, se algo acontecer com o computador, sua jornada continua. 🚀
+Feito um pequeno passo hoje? Então seu foguete já está indo para frente. 🚀

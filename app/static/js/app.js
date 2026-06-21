@@ -118,6 +118,15 @@ if(deadlineToggle){
  }
  const updateDeadline=()=>form.classList.toggle('no-deadline',!deadlineToggle.checked);
  updateDeadline();deadlineToggle.addEventListener('change',updateDeadline);
+ const recurrence=form.querySelector('select[name="recurrence_type"]');
+ const updateRecurrence=()=>{
+  const value=recurrence.value;
+  form.querySelectorAll('[data-recurrence]').forEach(field=>{
+   const kind=field.dataset.recurrence;
+   field.hidden=!((kind==='count'&&value==='count')||(kind==='end'&&['weekdays','weekends'].includes(value)));
+  });
+ };
+ if(recurrence){updateRecurrence();recurrence.addEventListener('change',updateRecurrence);}
 }
 const avatarInput=document.getElementById('avatar-input');
 if(avatarInput){
