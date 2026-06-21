@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="eyebrow">PAINEL DO ASTRONAUTA</span>
+    <h1>Perfil</h1>
+    <p>Ajuste seu cockpit pessoal.</p>
+  </div>
+</section>
+
+<section class="profile-grid">
+  <form method="post" class="panel">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="avatar-uploader">
+      <label class="profile-avatar" for="avatar-input" title="Alterar foto de perfil">
+        {% if current_user.avatar_path %}<img src="{{url_for('static', filename=current_user.avatar_path)}}" alt="">{% else %}<i class="bi bi-rocket-takeoff-fill"></i>{% endif %}
+        <span class="avatar-edit"><i class="bi bi-camera-fill"></i></span>
+      </label>
+      <input type="file" id="avatar-input" accept="image/png,image/jpeg,image/webp" hidden data-upload-url="{{url_for('main.upload_avatar')}}">
+      {% if current_user.avatar_path %}<button type="button" id="avatar-remove" class="btn-ghost avatar-remove" data-remove-url="{{url_for('main.remove_avatar')}}">Remover foto</button>{% endif %}
+    </div>
+    <label>Nome<input name="name" value="{{current_user.name}}"></label>
+    <label class="toggle" for="phrases-toggle"><span class="toggle-switch"><input id="phrases-toggle" type="checkbox" name="phrases" {% if current_user.motivational_phrases_enabled %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Frases motivacionais</span></label>
+    <label class="toggle {% if not current_user.is_premium %}toggle-locked{% endif %}" for="notifications-toggle"><span class="toggle-switch"><input id="notifications-toggle" type="checkbox" name="notifications" {% if current_user.notifications_enabled %}checked{% endif %} {% if not current_user.is_premium %}disabled{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Lembretes {% if not current_user.is_premium %}<i class="bi bi-lock-fill"></i>{% endif %} <small>(Premium)</small></span></label>
+    <label>Tema<select name="theme_mode"><option value="dark" {% if current_user.theme_mode=='dark' %}selected{% endif %}>Escuro</option><option value="light" {% if current_user.theme_mode=='light' %}selected{% endif %}>Claro</option></select></label>
+    <button>Salvar preferências</button>
+  </form>
+
+  <div class="profile-overview">
+    <div class="level panel"><span>NÍVEL {{stats.level}}</span><h2>{{stats.level_xp}} XP <small>/ {{stats.needed}} XP</small></h2><div class="bar"><i style="width:{{(stats.level_xp*100/stats.needed)|round}}%"></i></div></div>
+    <div class="stats-list panel"><p>Metas criadas <b>{{stats.created}}</b></p><p>Metas concluídas <b>{{stats.completed}}</b></p><p>Recorde de sequência <b>{{stats.record}} dias</b></p><p>Conquistas desbloqueadas <b>{{unlocked}}</b></p></div>
+    <nav class="profile-links" aria-label="Atalhos do perfil"><a href="{{url_for('main.achievements')}}">🏆 <span>Conquistas</span></a><a href="{{url_for('main.reports')}}">◫ <span>Relatórios</span></a><a href="{{url_for('main.premium')}}">✦ <span>Premium</span></a></nav>
+    <form class="profile-danger-zone" method="post" action="{{url_for('main.clear_data')}}" onsubmit="return confirm('Isso apagará todas as suas metas e conquistas. Continuar?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger">Limpar todos os dados</button></form>
+  </div>
+</section>
+{% endblock %}

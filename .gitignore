@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables and Flask instance data
+.env
+instance/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask / scheduler runtime files
+*.log
+flask_session/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# User uploads
+app/static/uploads/

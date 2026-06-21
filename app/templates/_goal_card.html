@@ -1,0 +1,15 @@
+<article class="goal-card {{row.status}}">
+  <form method="post" action="{{url_for('goals.toggle',id=row.goal.id)}}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="check" title="Concluir">{% if row.status=='concluida' %}<i class="bi bi-check"></i>{% endif %}</button></form>
+  <div class="goal-main">
+    <h3>{{row.goal.title}}</h3>
+    {% if row.goal.description %}<p>{{row.goal.description}}</p>{% endif %}
+    <div class="tags">
+      <span class="status status-{{row.status}}">{{ {'pendente':'Pendente','em_andamento':'Em andamento','concluida':'Concluída'}[row.status] }}</span>
+      <span>{{row.goal.category}}</span><span class="{{row.goal.priority}}">{{row.goal.priority}}</span>
+      {% if not row.goal.has_deadline %}<span>sem prazo</span>{% elif row.goal.recurrence_type!='none' %}<span>↻ recorrente</span>{% endif %}
+    </div>
+  </div>
+  <div class="goal-date">{% if row.goal.has_deadline %}{{row.date.strftime('%d/%m')}}{% if row.goal.time %}<small>{{row.goal.time.strftime('%H:%M')}}</small>{% endif %}{% else %}<small>Sem prazo</small>{% endif %}</div>
+  <a href="{{url_for('goals.edit',id=row.goal.id)}}" class="icon-btn" title="Editar"><i class="bi bi-pencil"></i></a>
+  <form method="post" action="{{url_for('goals.delete',id=row.goal.id)}}" onsubmit="return confirm('Remover esta meta?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Remover"><i class="bi bi-trash3"></i></button></form>
+</article>

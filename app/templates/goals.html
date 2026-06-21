@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Metas · Rocket Forward{% endblock %}
+{% block content %}
+<section class="hero"><div><span class="eyebrow">CENTRO DE COMANDO</span><h1>Metas</h1><p>Organize cada impulso da sua jornada.</p></div><a class="btn" href="{{url_for('goals.new')}}">+ Nova meta</a></section>
+<form class="filters" method="get">
+  <select name="status" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="pendente" {% if status=='pendente' %}selected{% endif %}>Pendentes</option><option value="em_andamento" {% if status=='em_andamento' %}selected{% endif %}>Em andamento</option><option value="concluida" {% if status=='concluida' %}selected{% endif %}>Concluídas</option></select>
+  <select name="priority" aria-label="Filtrar por prioridade"><option value="">Todas prioridades</option><option value="alta" {% if priority=='alta' %}selected{% endif %}>Alta</option><option value="media" {% if priority=='media' %}selected{% endif %}>Média</option><option value="baixa" {% if priority=='baixa' %}selected{% endif %}>Baixa</option></select>
+  <select name="category" aria-label="Filtrar por categoria"><option value="">Todas categorias</option>{% for c in categories %}<option value="{{c}}" {% if category==c %}selected{% endif %}>{{c|capitalize}}</option>{% endfor %}</select>
+  <button class="btn-ghost filter-submit">Filtrar</button>
+  {% if status or priority or category %}<a class="btn-ghost clear-filters" href="{{url_for('goals.index')}}">Limpar</a>{% endif %}
+</form>
+{% if rows %}<div class="goal-list">{% for row in rows %}{% include '_goal_card.html' %}{% endfor %}</div>{% else %}<div class="empty"><div>🪐</div><h2>Nada neste radar</h2><p>Ajuste os filtros ou crie uma nova meta.</p></div>{% endif %}
+{% endblock %}
