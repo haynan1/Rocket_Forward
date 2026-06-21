@@ -1,77 +1,154 @@
-# Rocket Forward — Planejamento Diário
+# 🚀 Rocket Forward
 
-Aplicação Flask de planejamento diário em português, com tema espacial, metas recorrentes, gamificação, histórico, API JSON e camada Premium demonstrativa.
+> Um pequeno painel para transformar coisas que você quer fazer em missões do dia.
 
-## Organização
+Pense assim: você escreve uma missão, faz a missão e ganha XP. É como cuidar de um foguete: um passinho por vez leva você mais longe. 🌟
 
-- `app/blueprints/`: rotas por domínio (autenticação, metas, páginas e API).
-- `app/models/`: um módulo por entidade persistida.
-- `app/services/`: regras de negócio (metas, recorrência, métricas e conquistas).
-- `app/utils/`: constantes e datas no fuso de São Paulo, sem acoplamento ao Flask.
-- `app/templates/` e `app/static/`: interface Jinja, CSS e JavaScript.
-- `tests/`: testes de regras essenciais.
+## ✨ O que dá para fazer?
 
-## Configuração
+- Criar metas para hoje ou para outro dia.
+- Marcar metas como **pendente**, **em andamento** ou **concluída**.
+- Repetir uma meta em dias úteis, finais de semana ou todos os dias.
+- Ver as missões de hoje no **Início** e na **Esteira**.
+- Ganhar XP e desbloquear conquistas ao concluir missões.
+- Acompanhar sequência, histórico e relatórios.
 
-Copie `.env.example` para `.env` e gere uma chave própria — a aplicação não inicia sem `SECRET_KEY`:
+## ▶️ Como abrir o foguete
+
+Você vai precisar de um computador com **Python 3.10 ou mais novo** instalado.
+
+### 1. Prepare a chave secreta
+
+Na pasta do projeto, faça uma cópia do arquivo de exemplo:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Agora abra o arquivo `.env` com o Bloco de Notas e coloque uma chave depois de `SECRET_KEY=`.
+
+Para criar uma chave, rode este comando e copie o resultado:
 
 ```powershell
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Em produção, defina `FLASK_ENV=production` (força debug desligado e cookies de sessão só por HTTPS) e `DEMO_MODE=0` (desativa o botão de ativar Premium sem cobrança).
+Exemplo de como o começo do `.env` deve ficar:
 
-## Executar localmente
+```env
+SECRET_KEY=cole_a_chave_grande_aqui
+```
+
+> Não mostre essa chave para outras pessoas. Ela é a senha da porta do foguete.
+
+### 2. Ligue o programa
 
 ```powershell
 python run.py
 ```
 
-Na primeira execução, `run.py` cria automaticamente a `venv`, instala as
-dependências de `requirements.txt` e inicia a aplicação usando esse ambiente.
-Se quiser ativá-lo manualmente depois:
+Na primeira vez, o projeto prepara sozinho uma caixinha com as ferramentas de que precisa (`venv`) e instala tudo.
 
-```powershell
-.\venv\Scripts\Activate.ps1
+### 3. Abra no navegador
+
+Com o programa ligado, abra:
+
+```text
+http://127.0.0.1:5000
 ```
 
-Abra `http://127.0.0.1:5000`. Crie uma conta ou use o usuário demonstrativo:
+Pronto! Crie sua conta e escolha uma primeira missão.
+
+Para parar o programa, volte ao terminal e aperte `Ctrl + C`.
+
+## 🧑‍🚀 Como usar
+
+1. Clique em **Nova meta**.
+2. Escreva uma coisa pequena para fazer, como “Ler 10 páginas”.
+3. A data começa em **hoje**. Você pode trocar se quiser.
+4. Salve a meta.
+5. Quando terminar, marque o círculo da meta.
+6. Veja o XP, a sequência e as conquistas crescerem.
+
+### O que cada tela faz?
+
+| Tela | Para que serve |
+| --- | --- |
+| **Início** | Mostra as missões de hoje. |
+| **Metas** | Mostra todas as suas metas e permite filtrar. |
+| **Esteira** | Organiza somente as metas de hoje em colunas de status. |
+| **Plano** | Mostra as metas da semana ou do mês. |
+| **Histórico** | Mostra seu avanço recente. |
+| **Perfil** | Altera nome, foto, tema e preferências. |
+
+## 🏆 XP e conquistas
+
+- Criar uma meta pode desbloquear conquistas de criação, como **Primeiro lançamento**.
+- Concluir uma meta dá XP.
+- Concluir missões em dias seguidos cria uma sequência.
+- Quando uma conquista é desbloqueada, um aviso aparece na tela.
+
+## 👨‍🔧 Para quem cuida do projeto
+
+### Rodar os testes
 
 ```powershell
-flask --app run.py demo-user
+.\venv\Scripts\python.exe -m pytest -q
 ```
 
-Credenciais: `demo@rocket.forward` / `foguete123`.
+### Usar uma conta de demonstração
 
-## Banco de dados
+Depois de executar o projeto uma vez:
 
-Por padrão, usa SQLite. Para PostgreSQL, defina em `.env`:
+```powershell
+.\venv\Scripts\python.exe -m flask --app run.py demo-user
+```
+
+Entre com:
+
+```text
+E-mail: demo@rocket.forward
+Senha: foguete123
+```
+
+### Onde as coisas ficam?
+
+| Pasta ou arquivo | O que guarda |
+| --- | --- |
+| `app/blueprints/` | As páginas e as rotas do sistema. |
+| `app/models/` | Os formatos dos dados, como usuário e meta. |
+| `app/services/` | As regras de XP, sequência, recorrência e conquistas. |
+| `app/templates/` | As telas em HTML. |
+| `app/static/` | Cores, estilos, JavaScript e imagens. |
+| `tests/` | Testes automáticos. |
+| `instance/rocket_forward.db` | O banco local com as informações do programa. |
+
+### Banco de dados
+
+Por padrão, o Rocket Forward guarda os dados no próprio computador usando SQLite. Para uma instalação maior, é possível trocar para PostgreSQL no arquivo `.env`:
 
 ```env
 DATABASE_URL=postgresql://usuario:senha@localhost/rocket_forward
 ```
 
-O esquema é versionado com Flask-Migrate/Alembic em `migrations/`. A aplicação roda
-`flask db upgrade` automaticamente a cada boot (basta `python run.py`). Para criar uma
-nova migração depois de alterar um modelo:
+As atualizações do banco são aplicadas automaticamente ao iniciar o projeto.
 
-```powershell
-flask --app run.py db migrate -m "descrição da mudança"
-flask --app run.py db upgrade
+### Modo de demonstração
+
+No `.env`, esta opção deixa o botão Premium funcionar sem pagamento real:
+
+```env
+DEMO_MODE=1
 ```
 
-## Testes
+Em um sistema de verdade com pagamento, use `DEMO_MODE=0`.
 
-```powershell
-pytest
+## 💾 Cuide dos seus dados
+
+Como o banco é local, fazer uma cópia deste arquivo protege suas metas:
+
+```text
+instance/rocket_forward.db
 ```
 
-Os testes cobrem limite gratuito, mudança de status, recorrência, XP/nível e isolamento de dados. O fuso de negócio é `America/Sao_Paulo`.
-
-## API protegida
-
-Após autenticação, estão disponíveis `GET/POST /api/goals`, `GET/PATCH/DELETE /api/goals/<id>`, `POST /api/goals/<id>/toggle-complete`, `POST /api/goals/<id>/cycle-status`, `/api/stats`, `/api/achievements`, `/api/reports/monthly` e `/api/profile`.
-
-## Lembretes
-
-O APScheduler é iniciado junto da aplicação e o modelo de notificações está incluído. O adaptador de envio é propositalmente local/mock nesta primeira versão: lembretes reais exigem configurar um provedor de e-mail/push e registrar os jobs a partir de `Notification`.
+É só copiar esse arquivo para uma pasta segura de vez em quando. Assim, se algo acontecer com o computador, sua jornada continua. 🚀
