@@ -12,13 +12,23 @@ class User(UserMixin, db.Model):
     avatar_path = db.Column(db.String(255))
     theme_mode = db.Column(db.String(10), nullable=False, default='dark')
     motivational_phrases_enabled = db.Column(db.Boolean, nullable=False, default=True)
+    show_undated_on_board = db.Column(db.Boolean, nullable=False, default=False)
+    phrase_interval_minutes = db.Column(db.Integer, nullable=False, default=30)
     is_premium = db.Column(db.Boolean, nullable=False, default=False)
     notifications_enabled = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     goals = db.relationship('Goal', backref='user', lazy=True, cascade='all, delete-orphan')
+    custom_phrases = db.relationship('MotivationalPhrase', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+
+
+class MotivationalPhrase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    text = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

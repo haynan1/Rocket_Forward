@@ -1,4 +1,5 @@
-from flask import Flask
+import secrets
+from flask import Flask, request
 from flask_migrate import upgrade as migrate_upgrade
 from sqlalchemy import text
 from config import Config
@@ -27,6 +28,9 @@ def _run_migrations(app):
 def create_app(config_object=Config):
     app = Flask(__name__)
     app.config.from_object(config_object)
+    # Muda a versão dos arquivos visuais a cada inicialização, evitando que o
+    # navegador reutilize CSS/JS antigos depois de `python run.py`.
+    app.config['ASSET_VERSION'] = secrets.token_urlsafe(8)
     db.init_app(app); migrate.init_app(app, db); login_manager.init_app(app)
     csrf.init_app(app); limiter.init_app(app)
     from .models import User
@@ -57,6 +61,10 @@ def create_app(config_object=Config):
         )
         if app.config.get('SESSION_COOKIE_SECURE'):
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        if request.endpoint == 'static':
+            response.headers['Cache-Control'] = 'no-store, max-age=0, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
         return response
 
     _run_migrations(app)

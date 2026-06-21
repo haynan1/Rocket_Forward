@@ -24,6 +24,12 @@ class Config:
     TIMEZONE = 'America/Sao_Paulo'
     DEBUG = not IS_PRODUCTION and os.getenv('FLASK_DEBUG', '0') == '1'
     DEMO_MODE = os.getenv('DEMO_MODE', '1') == '1'
+    SMTP_SERVER = os.getenv('SMTP_SERVER')
+    SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
+    SMTP_USERNAME = os.getenv('SMTP_USERNAME')
+    SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
+    SMTP_SENDER = os.getenv('SMTP_SENDER', SMTP_USERNAME or 'no-reply@rocket.forward')
+    SMTP_USE_TLS = os.getenv('SMTP_USE_TLS', '1') == '1'
 
     # Cookies de sessão: HttpOnly sempre, Secure obrigatório em produção (exige HTTPS).
     SESSION_COOKIE_HTTPONLY = True

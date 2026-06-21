@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Frases Premium · Rocket Forward{% endblock %}
+{% block content %}
+<section class="hero"><div><span class="eyebrow">PREMIUM</span><h1>Frases motivacionais</h1><p>Escolha as palavras que acompanham sua jornada.</p></div></section>
+<section class="phrases-layout">
+  <form method="post" class="panel phrase-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><h2>Troca automática</h2><p>Escolha de quanto em quanto tempo a frase do Início muda.</p><label>Intervalo<select name="interval">{% for value,label in [(1,'A cada 1 minuto'),(5,'A cada 5 minutos'),(15,'A cada 15 minutos'),(30,'A cada 30 minutos'),(60,'A cada 1 hora')] %}<option value="{{value}}" {% if interval==value %}selected{% endif %}>{{label}}</option>{% endfor %}</select></label><button>Salvar intervalo</button></form>
+  <form method="post" class="panel phrase-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><h2>Uma frase sua</h2><p>Ela entrará na rotação junto com as frases do Rocket Forward.</p><label>Nova frase<textarea name="text" maxlength="255" required placeholder="Ex.: Eu consigo fazer um pequeno progresso hoje."></textarea></label><button>Adicionar frase</button></form>
+</section>
+<section class="phrase-library"><div class="section-title"><div><span class="eyebrow">BIBLIOTECA</span><h2>{{default_phrases|length}} frases do Rocket Forward</h2></div></div><div class="phrases-grid">{% for phrase in default_phrases %}<article class="phrase-card"><i class="bi bi-stars"></i><p>“{{phrase}}”</p></article>{% endfor %}</div></section>
+<section class="phrase-library"><div class="section-title"><div><span class="eyebrow">SUAS FRASES</span><h2>{{custom_phrases|length}} frase{{'s' if custom_phrases|length != 1 else ''}} personalizada{{'s' if custom_phrases|length != 1 else ''}}</h2></div></div><div class="phrases-grid">{% for phrase in custom_phrases %}<article class="phrase-card custom"><p>“{{phrase.text}}”</p><form method="post" action="{{url_for('main.delete_phrase',id=phrase.id)}}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Remover frase"><i class="bi bi-trash3"></i></button></form></article>{% else %}<div class="empty">Ainda não há frases personalizadas. Escreva a primeira acima.</div>{% endfor %}</div></section>
+{% endblock %}

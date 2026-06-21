@@ -4,13 +4,13 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg', v=config['ASSET_VERSION']) }}" type="image/svg+xml">
   <title>{% block title %}Rocket Forward{% endblock %}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=config['ASSET_VERSION']) }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js" integrity="sha256-/tanOfjQ8GhxdN5s0UdF/A/HgJFEqxE9IpCKJr8Nf+o=" crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="{{ 'auth-page' if not current_user.is_authenticated else '' }}">
 {% if current_user.is_authenticated %}
   {% set endpoint = request.endpoint %}
   <aside id="sidebar">
@@ -46,6 +46,6 @@
     <a href="{{ url_for('main.profile') }}" class="{{ 'active' if endpoint == 'main.profile' }}"><i class="bi bi-person"></i></a>
   </nav>
 {% endif %}
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js', v=config['ASSET_VERSION']) }}"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@ def index():
 @bp.get('/board')
 @login_required
 def board():
-    rows=goals_for(current_user,today(),today())
+    rows=goals_for(current_user,today(),today(),include_undated=current_user.show_undated_on_board)
     rows.sort(key=lambda row:(PRIORITY_ORDER.get(row['goal'].priority,1),row['goal'].time or datetime.min.time()))
     columns=[{'status':key,'label':label,'goals':[row for row in rows if row['status']==key]} for key,label in BOARD_COLUMNS]
     return render_template('goals_board.html',columns=columns,categories=CATEGORIES)

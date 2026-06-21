@@ -4,9 +4,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required,current_user
 from PIL import Image, UnidentifiedImageError
 from ..extensions import db, limiter
-from ..models import Goal, UserAchievement
+from ..models import Goal, UserAchievement, MotivationalPhrase
 from ..services import today,goals_for,stats,completed_dates,unlock_achievements
 from ..services.achievements_data import ACHIEVEMENT_DEFINITIONS
+from ..services.phrases import DEFAULT_MOTIVATIONAL_PHRASES, current_phrase, phrases_for
 bp=Blueprint('main',__name__)
 
 ALLOWED_AVATAR_EXTENSIONS={'png','jpg','jpeg','webp'}
@@ -49,7 +50,8 @@ def _delete_avatar_file(avatar_path):
 def dashboard():
     rows=goals_for(current_user,today(),today()); done=sum(x['status']=='concluida' for x in rows)
     s=stats(current_user)
-    return render_template('dashboard.html', rows=rows, done=done, total=len(rows), stats=s, risk=bool(s['streak'] and not done and any(x['status']!='concluida' for x in rows)))
+    phrases=phrases_for(current_user)
+    return render_template('dashboard.html', rows=rows, done=done, total=len(rows), stats=s, phrases=phrases, phrase=current_phrase(phrases,current_user.phrase_interval_minutes), phrase_interval_ms=current_user.phrase_interval_minutes*60*1000, risk=bool(s['streak'] and not done and any(x['status']!='concluida' for x in rows)))
 @bp.get('/planning')
 @login_required
 def planning():
@@ -66,8 +68,37 @@ def history():
 def profile():
     if request.method=='POST':
         current_user.name=request.form.get('name','').strip() or current_user.name
-        current_user.theme_mode=request.form.get('theme_mode',current_user.theme_mode);current_user.motivational_phrases_enabled='phrases' in request.form;current_user.notifications_enabled='notifications' in request.form;db.session.commit();flash('Perfil atualizado.','success');return redirect(url_for('main.profile'))
+        current_user.theme_mode=request.form.get('theme_mode',current_user.theme_mode);current_user.motivational_phrases_enabled='phrases' in request.form;current_user.show_undated_on_board='show_undated_on_board' in request.form;current_user.notifications_enabled='notifications' in request.form;db.session.commit();flash('Perfil atualizado.','success');return redirect(url_for('main.profile'))
     return render_template('profile.html',stats=stats(current_user),unlocked=UserAchievement.query.filter_by(user_id=current_user.id).count())
+@bp.route('/phrases',methods=['GET','POST'])
+@login_required
+@limiter.limit('30 per minute', methods=['POST'])
+def phrases():
+    if not current_user.is_premium:
+        flash('Personalização de frases é um recurso Premium.','error')
+        return redirect(url_for('main.premium'))
+    if request.method=='POST':
+        interval=request.form.get('interval')
+        if interval:
+            try: interval=int(interval)
+            except ValueError: interval=0
+            if interval not in (1,5,15,30,60): flash('Escolha um intervalo válido.','error')
+            else: current_user.phrase_interval_minutes=interval;db.session.commit();flash('Intervalo atualizado.','success')
+        text=request.form.get('text','').strip()
+        if text:
+            if len(text)>255: flash('A frase pode ter no máximo 255 caracteres.','error')
+            else: db.session.add(MotivationalPhrase(user=current_user,text=text));db.session.commit();flash('Frase personalizada adicionada.','success')
+        return redirect(url_for('main.phrases'))
+    return render_template('phrases.html',default_phrases=DEFAULT_MOTIVATIONAL_PHRASES,custom_phrases=current_user.custom_phrases,interval=current_user.phrase_interval_minutes)
+@bp.post('/phrases/<int:id>/delete')
+@login_required
+@limiter.limit('30 per minute')
+def delete_phrase(id):
+    if not current_user.is_premium: abort(403)
+    phrase=db.session.get(MotivationalPhrase,id)
+    if not phrase or phrase.user_id!=current_user.id: abort(404)
+    db.session.delete(phrase);db.session.commit();flash('Frase removida.','success')
+    return redirect(url_for('main.phrases'))
 @bp.post('/profile/avatar')
 @login_required
 @limiter.limit('10 per minute')
@@ -111,6 +142,6 @@ def reports(): return render_template('reports.html', stats=stats(current_user))
 @limiter.limit('30 per minute', methods=['POST'])
 def premium():
     if request.method=='POST':
-        if not current_app.config['DEMO_MODE']: abort(404)
+        if not current_app.config.get('DEMO_MODE',False): abort(404)
         current_user.is_premium=not current_user.is_premium;db.session.commit();flash('Modo demonstração atualizado — nenhuma cobrança foi feita.','success');return redirect(url_for('main.premium'))
-    return render_template('premium.html', demo_mode=current_app.config['DEMO_MODE'])
+    return render_template('premium.html', demo_mode=current_app.config.get('DEMO_MODE',False))

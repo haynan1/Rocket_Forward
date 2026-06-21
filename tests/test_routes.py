@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 from app.extensions import db
-from app.models import User, Goal
+from app.models import User, Goal, MotivationalPhrase
 from app.services import goals_for, today
+from app.blueprints.auth import password_reset_token
 
 
 def _register(client, email, password='12345678', name='A'):
@@ -28,6 +29,70 @@ def test_invalid_login_does_not_authenticate(client):
     _login(client, 'owner2@rocket.test', password='senha-errada')
     # sem sessão válida, a home redireciona pro login em vez de mostrar o dashboard
     assert client.get('/').status_code in (302, 308)
+
+
+def test_password_can_be_reset_with_a_valid_temporary_link(app, client):
+    _register(client, 'reset@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='reset@rocket.test').first()
+        token = password_reset_token(user)
+    _logout(client)
+
+    response = client.post(f'/auth/reset-password/{token}', data={'password': 'nova-senha', 'password_confirmation': 'nova-senha'}, follow_redirects=True)
+
+    assert response.status_code == 200
+    _logout(client)
+    assert _login(client, 'reset@rocket.test', 'nova-senha').status_code == 200
+
+
+def test_password_recovery_request_does_not_reveal_if_email_exists(client):
+    response = client.post('/auth/forgot-password', data={'email': 'nao-existe@rocket.test'}, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert 'Se esse e-mail tiver uma conta'.encode() in response.data
+
+
+def test_static_assets_are_not_cached(client):
+    response = client.get('/static/css/app.css')
+
+    assert response.headers['Cache-Control'] == 'no-store, max-age=0, must-revalidate'
+
+
+def test_login_background_images_are_in_the_login_folder(client):
+    for image in ('imagem1.png', 'imagem2.png', 'imagem3.png', 'imagem4.png'):
+        assert client.get(f'/static/images/login/{image}').status_code == 200
+
+
+def test_phrase_personalization_is_premium_only(app, client):
+    _register(client, 'phrases@rocket.test')
+    assert client.get('/phrases', follow_redirects=True).status_code == 200
+    with app.app_context():
+        user = User.query.filter_by(email='phrases@rocket.test').first()
+        user.is_premium = True
+        db.session.commit()
+    _logout(client)
+    _login(client, 'phrases@rocket.test')
+
+    response = client.post('/phrases', data={'interval': '5', 'text': 'Um passo de cada vez.'}, follow_redirects=True)
+
+    assert response.status_code == 200
+    with app.app_context():
+        user = User.query.filter_by(email='phrases@rocket.test').first()
+        assert user.phrase_interval_minutes == 5
+        assert MotivationalPhrase.query.filter_by(user_id=user.id, text='Um passo de cada vez.').count() == 1
+
+
+def test_user_can_choose_to_show_undated_goals_on_board(app, client):
+    _register(client, 'undated-board@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='undated-board@rocket.test').first()
+        db.session.add(Goal(user=user, title='meta sem prazo', date=today(), has_deadline=False))
+        db.session.commit()
+
+    assert b'meta sem prazo' not in client.get('/goals/board').data
+    client.post('/profile', data={'name': 'A', 'show_undated_on_board': 'on'}, follow_redirects=True)
+
+    assert b'meta sem prazo' in client.get('/goals/board').data
 
 
 def test_goal_filter_keeps_the_selected_value(app, client):

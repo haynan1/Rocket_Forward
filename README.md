@@ -61,6 +61,12 @@ Pronto! Crie sua conta e escolha uma primeira missão.
 
 Para parar o programa, volte ao terminal e aperte `Ctrl + C`.
 
+### Esqueceu a senha?
+
+Na tela de entrada, clique em **Esqueci minha senha**. O Rocket Forward envia um link que vale por uma hora para você criar uma nova senha.
+
+No computador local, configure as opções `SMTP_...` no arquivo `.env` para receber esse link por e-mail. Sem e-mail configurado, o programa registra o link temporário apenas no terminal.
+
 ## 🧑‍🚀 Como usar
 
 1. Clique em **Nova meta**.

@@ -10,7 +10,7 @@
 </section>
 
 <section class="profile-grid">
-  <form method="post" class="panel">
+  <form method="post" class="panel profile-settings">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="avatar-uploader">
       <label class="profile-avatar" for="avatar-input" title="Alterar foto de perfil">
@@ -21,9 +21,12 @@
       {% if current_user.avatar_path %}<button type="button" id="avatar-remove" class="btn-ghost avatar-remove" data-remove-url="{{url_for('main.remove_avatar')}}">Remover foto</button>{% endif %}
     </div>
     <label>Nome<input name="name" value="{{current_user.name}}"></label>
-    <label class="toggle" for="phrases-toggle"><span class="toggle-switch"><input id="phrases-toggle" type="checkbox" name="phrases" {% if current_user.motivational_phrases_enabled %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Frases motivacionais</span></label>
-    <label class="toggle {% if not current_user.is_premium %}toggle-locked{% endif %}" for="notifications-toggle"><span class="toggle-switch"><input id="notifications-toggle" type="checkbox" name="notifications" {% if current_user.notifications_enabled %}checked{% endif %} {% if not current_user.is_premium %}disabled{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Lembretes {% if not current_user.is_premium %}<i class="bi bi-lock-fill"></i>{% endif %} <small>(Premium)</small></span></label>
     <label>Tema<select name="theme_mode"><option value="dark" {% if current_user.theme_mode=='dark' %}selected{% endif %}>Escuro</option><option value="light" {% if current_user.theme_mode=='light' %}selected{% endif %}>Claro</option></select></label>
+    <div class="profile-settings-divider"></div>
+    <label class="toggle" for="phrases-toggle"><span class="toggle-switch"><input id="phrases-toggle" type="checkbox" name="phrases" {% if current_user.motivational_phrases_enabled %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Frases motivacionais</span></label>
+    {% if current_user.is_premium %}<a class="phrase-settings" href="{{url_for('main.phrases')}}">Ajustar frases e intervalo <i class="bi bi-arrow-right"></i></a>{% else %}<a class="phrase-settings locked" href="{{url_for('main.premium')}}">Ajustar frases e intervalo <small>Premium</small></a>{% endif %}
+    <label class="toggle" for="undated-board-toggle"><span class="toggle-switch"><input id="undated-board-toggle" type="checkbox" name="show_undated_on_board" {% if current_user.show_undated_on_board %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Metas sem prazo na Esteira <small>(opcional)</small></span></label>
+    <label class="toggle {% if not current_user.is_premium %}toggle-locked{% endif %}" for="notifications-toggle"><span class="toggle-switch"><input id="notifications-toggle" type="checkbox" name="notifications" {% if current_user.notifications_enabled %}checked{% endif %} {% if not current_user.is_premium %}disabled{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Lembretes <small>(Premium)</small></span></label>
     <button>Salvar preferências</button>
   </form>
 

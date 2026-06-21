@@ -5,6 +5,17 @@ function showNextToast(){
  toastVisible=true;
  const {msg,type}=toastQueue.shift();
  const t=document.createElement('div');t.className='toast'+(type?' '+type:'');t.textContent=msg;
+ if(msg.includes('Conquista desbloqueada')){
+  t.classList.add('achievement-toast');
+  ['#ffd36b','#a99bff','#ff8e76','#78d9bb','#fff'].forEach((color,index)=>{
+   const particle=document.createElement('i');particle.className='space-confetti';
+   const angle=(Math.PI*2*index)/5;const distance=38+(index%2)*16;
+   particle.style.setProperty('--confetti-color',color);
+   particle.style.setProperty('--confetti-x',`${Math.cos(angle)*distance}px`);
+   particle.style.setProperty('--confetti-y',`${Math.sin(angle)*distance}px`);
+   t.appendChild(particle);
+  });
+ }
  document.body.appendChild(t);
  setTimeout(()=>{t.remove();toastVisible=false;showNextToast();},4000);
 }
@@ -15,6 +26,49 @@ document.querySelectorAll('.toast').forEach(t=>{
  const type=t.classList.contains('error')?'error':'success';
  showToast(t.textContent,type);t.remove();
 });
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+ document.querySelectorAll('.stat b, .stats-list b').forEach(element=>{
+  const match=element.textContent.trim().match(/^(\d+)(.*)$/);
+  if(!match)return;
+  const target=Number(match[1]);const suffix=match[2];const started=performance.now();
+  const tick=now=>{
+   const progress=Math.min((now-started)/700,1);
+   element.textContent=`${Math.round(target*(1-(1-progress)**3))}${suffix}`;
+   if(progress<1)requestAnimationFrame(tick);
+  };
+  element.textContent=`0${suffix}`;requestAnimationFrame(tick);
+ });
+}
+const motivationalPhrase=document.querySelector('.motivational-phrase[data-phrases]');
+if(motivationalPhrase){
+ try{
+  const phrases=JSON.parse(motivationalPhrase.dataset.phrases||'[]');
+  const interval=Number(motivationalPhrase.dataset.interval)||1800000;
+  if(phrases.length>1){
+   let current=Math.floor(Date.now()/interval)%phrases.length;
+   const changePhrase=()=>{
+    current=(current+1)%phrases.length;
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduced)motivationalPhrase.classList.add('changing');
+    setTimeout(()=>{
+     motivationalPhrase.textContent=`“${phrases[current]}”`;
+     motivationalPhrase.classList.remove('changing');
+    },reduced?0:180);
+   };
+   setInterval(changePhrase,interval);
+  }
+ }catch(error){ console.warn('Não foi possível carregar as frases motivacionais.',error); }
+}
+const authPage=document.body.classList.contains('auth-page');
+if(authPage&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+ const backgrounds=['','auth-background-1','auth-background-2','auth-background-3'];
+ let current=0;
+ setInterval(()=>{
+  document.body.classList.remove(...backgrounds.slice(1));
+  current=(current+1)%backgrounds.length;
+  if(backgrounds[current])document.body.classList.add(backgrounds[current]);
+ },30000);
+}
 const board=document.querySelector('.board');
 if(board){
  const csrfToken=document.querySelector('meta[name="csrf-token"]').content;
@@ -33,8 +87,9 @@ if(board){
    const from=dragged.closest('.board-list');
    if(from===list)return;
    const id=dragged.dataset.id;const status=list.dataset.status;const occurrence=dragged.dataset.occurrence;
-   from.removeChild(dragged);list.appendChild(dragged);updateCount(from);updateCount(list);
-   fetch(`/api/goals/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify({status,occurrence})})
+   const moved=dragged;from.removeChild(moved);list.appendChild(moved);moved.classList.add('board-card-settling');setTimeout(()=>moved.classList.remove('board-card-settling'),350);updateCount(from);updateCount(list);
+   const update={status};if(occurrence)update.occurrence=occurrence;
+   fetch(`/api/goals/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(update)})
     .then(r=>{if(!r.ok)throw new Error();return r.json();})
     .then(data=>(data.achievements||[]).forEach(achievement=>showToast(`🏆 Conquista desbloqueada: ${achievement.title}`,'success')))
     .catch(()=>{
