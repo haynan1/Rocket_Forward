@@ -1,5 +1,5 @@
-<article class="goal-card {{row.status}}">
-  <form method="post" action="{{url_for('goals.toggle',id=row.goal.id)}}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="check" title="Concluir">{% if row.status=='concluida' %}<i class="bi bi-check"></i>{% endif %}</button></form>
+<article class="goal-card {{row.status}} {{'overdue' if row.is_overdue else ''}}">
+  <form method="post" action="{{url_for('goals.toggle',id=row.goal.id)}}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if row.date %}<input type="hidden" name="occurrence" value="{{row.date.isoformat()}}">{% endif %}<button class="check" title="Concluir">{% if row.status=='concluida' %}<i class="bi bi-check"></i>{% endif %}</button></form>
   <div class="goal-main">
     <h3>{{row.goal.title}}</h3>
     {% if row.goal.description %}<p>{{row.goal.description}}</p>{% endif %}

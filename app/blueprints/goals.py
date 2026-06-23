@@ -19,18 +19,30 @@ def owned(id):
 def index():
     rows=goals_for(current_user,today()-timedelta(days=365),today()+timedelta(days=30),include_undated=True); status=request.args.get('status','');priority=request.args.get('priority','');category=request.args.get('category','')
     rows=[x for x in rows if (not status or x['status']==status) and (not priority or x['goal'].priority==priority) and (not category or x['goal'].category==category)]
-    return render_template('goals.html',rows=rows,categories=CATEGORIES,status=status,priority=priority,category=category)
+    today_date=today()
+    for row in rows:
+        row['is_overdue']=bool(row['date'] and row['date']<today_date and row['status']!='concluida')
+    return render_template('goals.html',rows=rows,categories=CATEGORIES,status=status,priority=priority,category=category,today_date=today_date)
 @bp.get('/board')
 @login_required
 def board():
-    rows=[row for row in goals_for(current_user,today(),today(),include_undated=True) if row['goal'].show_on_board]
+    today_date=today()
+    rows=[row for row in goals_for(current_user,today_date,today_date,include_undated=True) if row['goal'].show_on_board]
     rows.sort(key=lambda row:(PRIORITY_ORDER.get(row['goal'].priority,1),row['goal'].time or datetime.min.time()))
     today_rows=[row for row in rows if row['date']]
     undated_rows=[row for row in rows if not row['date']]
+    overdue_by_goal={}
+    for row in goals_for(current_user,today_date-timedelta(days=365),today_date-timedelta(days=1)):
+        if row['goal'].show_on_board and row['status']!='concluida':
+            # Para metas recorrentes, exibimos apenas a pendência mais recente da série.
+            previous=overdue_by_goal.get(row['goal'].id)
+            if not previous or row['date']>previous['date']:
+                overdue_by_goal[row['goal'].id]=row
+    overdue_rows=sorted(overdue_by_goal.values(),key=lambda row:(row['date'],PRIORITY_ORDER.get(row['goal'].priority,1),row['goal'].time or datetime.min.time()))
     columns=[{'status':key,'label':label,'goals':[row for row in today_rows if row['status']==key]} for key,label in BOARD_COLUMNS]
     undated_preview=undated_rows[:10]
     undated_columns=[{'status':key,'label':label,'goals':[row for row in undated_preview if row['status']==key]} for key,label in BOARD_COLUMNS]
-    return render_template('goals_board.html',columns=columns,undated_columns=undated_columns,undated_total=len(undated_rows),undated_preview_count=len(undated_preview),categories=CATEGORIES)
+    return render_template('goals_board.html',columns=columns,overdue_rows=overdue_rows,today_date=today_date,undated_columns=undated_columns,undated_total=len(undated_rows),undated_preview_count=len(undated_preview),categories=CATEGORIES)
 @bp.route('/new',methods=['GET','POST'])
 @login_required
 @limiter.limit('30 per minute', methods=['POST'])
@@ -74,7 +86,12 @@ def save_goal(g):
 @login_required
 @limiter.limit('60 per minute')
 def toggle(id):
-    g=owned(id); _,achievements=set_status(g,'pendente' if g.status=='concluida' else 'concluida',include_achievements=True)
+    g=owned(id); occurrence=None
+    if request.form.get('occurrence'):
+        try: occurrence=datetime.strptime(request.form['occurrence'],'%Y-%m-%d').date()
+        except ValueError: abort(400)
+    current=next((row['status'] for row in goals_for(g.user,occurrence,occurrence) if row['goal'].id==g.id),g.status) if occurrence else g.status
+    _,achievements=set_status(g,'pendente' if current=='concluida' else 'concluida',occurrence,include_achievements=True)
     for achievement in achievements: flash(f"🏆 Conquista desbloqueada: {achievement['title']}",'success')
     return redirect(request.referrer or url_for('goals.index'))
 @bp.post('/<int:id>/delete')

@@ -219,7 +219,25 @@ def test_board_shows_only_goals_scheduled_for_today(app, client):
     response = client.get('/goals/board')
 
     assert b'meta de hoje' in response.data
-    assert b'meta antiga' not in response.data
+    assert b'Metas atrasadas' in response.data
+    assert b'meta antiga' in response.data
+
+
+def test_board_surfaces_unfinished_overdue_goals(app, client):
+    _register(client, 'overdue@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='overdue@rocket.test').first()
+        db.session.add_all([
+            Goal(user=user, title='meta atrasada', date=today() - timedelta(days=2)),
+            Goal(user=user, title='meta concluida', date=today() - timedelta(days=1), status='concluida'),
+        ])
+        db.session.commit()
+
+    response = client.get('/goals/board')
+
+    assert 'Metas atrasadas'.encode() in response.data
+    assert b'meta atrasada' in response.data
+    assert b'meta concluida' not in response.data
 
 
 def test_board_status_update_applies_to_todays_recurrence(app, client):
