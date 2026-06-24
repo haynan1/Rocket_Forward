@@ -17,7 +17,7 @@ class User(UserMixin, db.Model):
     phrase_interval_minutes = db.Column(db.Integer, nullable=False, default=30)
     is_premium = db.Column(db.Boolean, nullable=False, default=False)
     notifications_enabled = db.Column(db.Boolean, nullable=False, default=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     goals = db.relationship('Goal', backref='user', lazy=True, cascade='all, delete-orphan')
     custom_phrases = db.relationship('MotivationalPhrase', backref='user', lazy=True, cascade='all, delete-orphan')
 
@@ -32,4 +32,4 @@ class MotivationalPhrase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     text = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)

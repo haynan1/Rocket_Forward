@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Metas predefinidas · Rocket Forward{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><span class="eyebrow">CATÁLOGO DE IMPULSOS</span><h1>Metas <span>predefinidas</span></h1><p>Deixe seus objetivos recorrentes prontos para entrar em ação no dia certo.</p></div>
+  <a class="btn" href="{{ url_for('goals.new_template') }}"><i class="bi bi-plus-lg"></i> Nova predefinida</a>
+</section>
+
+{% if templates %}
+  <section class="template-intro panel"><i class="bi bi-lightning-charge-fill"></i><div><strong>Suas metas estão guardadas aqui</strong><p>Cadastrar não ativa nada. Quando quiser usar uma delas, escolha a data e clique em “Ativar meta”.</p></div></section>
+  <div class="template-grid">
+  {% for template in templates %}
+    <article class="template-card">
+      <div class="template-card-head"><span class="template-icon"><i class="bi bi-bookmark-star-fill"></i></span><div class="template-actions"><a class="icon-btn" href="{{ url_for('goals.edit_template', id=template.id) }}" title="Editar predefinida"><i class="bi bi-pencil"></i></a><form method="post" action="{{ url_for('goals.delete_template', id=template.id) }}" onsubmit="return confirm('Remover esta meta predefinida?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Remover predefinida"><i class="bi bi-trash3"></i></button></form></div></div>
+      <h2>{{ template.title }}</h2>
+      {% if template.description %}<p>{{ template.description }}</p>{% endif %}
+      {% if template.link_url %}<a class="goal-link" href="{{ template.link_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-link-45deg"></i> Link de apoio</a>{% endif %}
+      <div class="tags"><span>{{ template.category }}</span><span class="{{ template.priority }}">{{ template.priority }}</span>{% if template.time %}<span><i class="bi bi-clock"></i> {{ template.time.strftime('%H:%M') }}</span>{% endif %}{% if template.show_on_board %}<span><i class="bi bi-kanban"></i> Esteira</span>{% endif %}</div>
+      <form class="template-activate" method="post" action="{{ url_for('goals.activate_template', id=template.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Ativar em<input type="date" name="date" value="{{ today_date.isoformat() }}" required></label><button><i class="bi bi-rocket-takeoff"></i> Ativar meta</button></form>
+    </article>
+  {% endfor %}
+  </div>
+{% else %}
+  <section class="empty template-empty"><div>✨</div><h2>Seu catálogo está pronto para decolar</h2><p>Crie uma meta predefinida para ativá-la em qualquer dia, sem precisar configurar tudo de novo.</p><a class="btn" href="{{ url_for('goals.new_template') }}">Criar primeira predefinida</a></section>
+{% endif %}
+{% endblock %}

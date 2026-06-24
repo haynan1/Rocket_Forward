@@ -85,7 +85,7 @@ def achievement_context(user):
         'priorities_completed':sum(1 for p in ('alta','media','baixa') if priority_counts.get(p,0)>0),
         'has_avatar':bool(user.avatar_path),
         'renamed':user.name!='Astronauta',
-        'account_days':(datetime.utcnow()-user.created_at).days,
+        'account_days':(datetime.now()-user.created_at).days,
         'is_premium':user.is_premium,
         'light_theme':user.theme_mode=='light',
         'notifications_on':user.notifications_enabled,

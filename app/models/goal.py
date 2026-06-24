@@ -15,7 +15,7 @@ class Goal(db.Model):
     priority = db.Column(db.String(10), nullable=False, default='media')
     category = db.Column(db.String(30), nullable=False, default='pessoal')
     status = db.Column(db.String(20), nullable=False, default='pendente')
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     completed_at = db.Column(db.DateTime)
     recurrence_type = db.Column(db.String(15), nullable=False, default='none')
     recurrence_start_date = db.Column(db.Date)
@@ -23,6 +23,22 @@ class Goal(db.Model):
     recurrence_days = db.Column(db.Integer)
     series_id = db.Column(db.String(36))
     overrides = db.relationship('GoalOccurrenceOverride', backref='goal', lazy=True, cascade='all, delete-orphan')
+
+
+class GoalTemplate(db.Model):
+    """Modelo reutilizável que pode ser ativado em qualquer data."""
+    __tablename__ = 'goal_template'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    title = db.Column(db.String(160), nullable=False)
+    description = db.Column(db.Text)
+    link_url = db.Column(db.String(2048))
+    time = db.Column(db.Time)
+    show_on_board = db.Column(db.Boolean, nullable=False, default=True)
+    priority = db.Column(db.String(10), nullable=False, default='media')
+    category = db.Column(db.String(30), nullable=False, default='pessoal')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
 
 class GoalOccurrenceOverride(db.Model):

@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from app.extensions import db
-from app.models import User, Goal, MotivationalPhrase
+from app.models import User, Goal, GoalTemplate, GoalOccurrenceOverride, MotivationalPhrase
 from app.services import goals_for, today
 from app.blueprints.auth import password_reset_token
 
@@ -196,6 +196,70 @@ def test_new_goal_without_a_date_uses_today_and_appears_on_dashboard(app, client
     with app.app_context():
         goal = Goal.query.filter_by(title='meta de hoje').first()
         assert goal.date == today()
+
+
+def test_goal_template_can_be_saved_and_activated_without_leaving_the_catalog(app, client):
+    _register(client, 'templates@rocket.test')
+
+    response = client.post('/goals/templates/new', data={
+        'title': 'Planejar a semana', 'description': 'Separar as prioridades.',
+        'time': '09:30', 'priority': 'alta', 'category': 'trabalho', 'show_on_board': 'on',
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert 'Planejar a semana'.encode() in response.data
+    with app.app_context():
+        template = GoalTemplate.query.filter_by(title='Planejar a semana').first()
+        assert template is not None
+        template_id = template.id
+
+    scheduled_date = today() + timedelta(days=4)
+    response = client.post(f'/goals/templates/{template_id}/activate', data={'date': scheduled_date.isoformat()}, follow_redirects=True)
+
+    assert response.status_code == 200
+    with app.app_context():
+        assert Goal.query.filter_by(title='Planejar a semana', date=scheduled_date).count() == 1
+        assert db.session.get(GoalTemplate, template_id) is not None
+
+
+def test_goal_template_form_has_optional_time_selector(client):
+    _register(client, 'template-form@rocket.test')
+
+    response = client.get('/goals/templates/new')
+
+    assert b'id="has-time"' in response.data
+    assert b'id="template-time-fields"' in response.data
+
+
+def test_goal_form_rejects_invalid_recurrence_values(client):
+    _register(client, 'invalid-recurrence@rocket.test')
+
+    response = client.post('/goals/new', data={
+        'title': 'Meta valida', 'has_deadline': 'on', 'recurrence_type': 'invalid',
+    })
+
+    assert response.status_code == 200
+    assert b'Tipo de repeticao invalido.' in response.data
+
+
+def test_clear_data_removes_goal_dependencies_and_templates(app, client):
+    _register(client, 'clear-data@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='clear-data@rocket.test').first()
+        goal = Goal(user=user, title='recorrente', date=today(), recurrence_type='forever')
+        template = GoalTemplate(user_id=user.id, title='modelo')
+        db.session.add_all([goal, template])
+        db.session.commit()
+        db.session.add(GoalOccurrenceOverride(goal=goal, occurrence_date=today(), status='concluida'))
+        db.session.commit()
+
+    response = client.post('/profile/clear', follow_redirects=True)
+
+    assert response.status_code == 200
+    with app.app_context():
+        assert Goal.query.count() == 0
+        assert GoalOccurrenceOverride.query.count() == 0
+        assert GoalTemplate.query.count() == 0
 
 
 def test_unlocking_an_achievement_is_shown_after_saving_a_goal(client):

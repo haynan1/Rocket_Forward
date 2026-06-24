@@ -2,18 +2,26 @@ from datetime import datetime, date, timedelta
 from flask import Blueprint,render_template,request,redirect,url_for,flash,abort
 from flask_login import login_required,current_user
 from ..extensions import db, limiter
-from ..models import Goal
+from ..models import Goal, GoalTemplate
 from ..services import today,goals_for,can_create,set_status,unlock_achievements
-from ..utils.constants import GOAL_CATEGORIES
+from ..utils.constants import GOAL_CATEGORIES, GOAL_PRIORITIES, GOAL_STATUSES
 from ..utils.validators import valid_link_url
 bp=Blueprint('goals',__name__,url_prefix='/goals')
 CATEGORIES=GOAL_CATEGORIES
 BOARD_COLUMNS=(('pendente','A fazer'),('em_andamento','Em andamento'),('concluida','Concluída'))
 PRIORITY_ORDER={'alta':0,'media':1,'baixa':2}
+RECURRENCE_TYPES=('none','weekdays','weekends','count','forever')
+MAX_TITLE_LEN=160
+MAX_DESCRIPTION_LEN=2000
 def owned(id):
     g=db.session.get(Goal,id)
     if not g or g.user_id!=current_user.id: abort(404)
     return g
+
+def owned_template(id):
+    template=db.session.get(GoalTemplate,id)
+    if not template or template.user_id!=current_user.id: abort(404)
+    return template
 @bp.get('/')
 @login_required
 def index():
@@ -51,6 +59,70 @@ def new():
         if not can_create(current_user): flash('O plano gratuito permite até 5 metas ativas. Conheça o Premium!','error');return redirect(url_for('main.premium'))
         return save_goal(Goal(user=current_user))
     return render_template('goal_form.html',goal=None,categories=CATEGORIES)
+
+@bp.get('/templates')
+@login_required
+def templates():
+    rows=GoalTemplate.query.filter_by(user_id=current_user.id).order_by(GoalTemplate.created_at.desc()).all()
+    return render_template('goal_templates.html',templates=rows,categories=CATEGORIES,today_date=today())
+
+@bp.route('/templates/new',methods=['GET','POST'])
+@login_required
+@limiter.limit('30 per minute', methods=['POST'])
+def new_template():
+    if request.method=='POST':
+        return save_template(GoalTemplate(user_id=current_user.id))
+    return render_template('goal_template_form.html',template=None,categories=CATEGORIES)
+
+@bp.route('/templates/<int:id>/edit',methods=['GET','POST'])
+@login_required
+@limiter.limit('30 per minute', methods=['POST'])
+def edit_template(id):
+    template=owned_template(id)
+    if request.method=='POST':
+        return save_template(template)
+    return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+
+def save_template(template):
+    title=request.form.get('title','').strip(); link_url=request.form.get('link_url','').strip()
+    template.title=title;template.description=request.form.get('description','').strip() or None;template.link_url=link_url or None
+    template.priority=request.form.get('priority','media');template.category=request.form.get('category','pessoal');template.show_on_board='show_on_board' in request.form
+    if len(title)>MAX_TITLE_LEN or (template.description and len(template.description)>MAX_DESCRIPTION_LEN):
+        flash('Titulo ou descricao excede o tamanho permitido.','error');return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+    if template.priority not in GOAL_PRIORITIES or template.category not in CATEGORIES:
+        flash('Prioridade ou categoria invalida.','error');return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+    try: template.time=datetime.strptime(request.form['time'],'%H:%M').time() if request.form.get('time') else None
+    except ValueError:
+        flash('Informe um horário válido.','error');return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+    if not title:
+        flash('O título é obrigatório.','error');return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+    if not valid_link_url(link_url):
+        flash('Informe um link válido que comece com http:// ou https://.','error');return render_template('goal_template_form.html',template=template,categories=CATEGORIES)
+    db.session.add(template);db.session.commit();flash('Meta predefinida salva com sucesso.','success')
+    return redirect(url_for('goals.templates'))
+
+@bp.post('/templates/<int:id>/activate')
+@login_required
+@limiter.limit('30 per minute')
+def activate_template(id):
+    template=owned_template(id)
+    if not can_create(current_user):
+        flash('O plano gratuito permite até 5 metas ativas. Conheça o Premium!','error');return redirect(url_for('main.premium'))
+    try: scheduled_date=datetime.strptime(request.form.get('date',''),'%Y-%m-%d').date()
+    except ValueError:
+        flash('Escolha uma data válida para ativar esta meta.','error');return redirect(url_for('goals.templates'))
+    goal=Goal(user=current_user,title=template.title,description=template.description,link_url=template.link_url,date=scheduled_date,time=template.time,has_deadline=True,show_on_board=template.show_on_board,priority=template.priority,category=template.category,status='pendente')
+    db.session.add(goal);db.session.commit()
+    for achievement in unlock_achievements(current_user): flash(f"🏆 Conquista desbloqueada: {achievement['title']}",'success')
+    flash(f'Meta ativada para {scheduled_date.strftime("%d/%m/%Y")}.','success')
+    return redirect(url_for('goals.board') if scheduled_date==today() else url_for('goals.index'))
+
+@bp.post('/templates/<int:id>/delete')
+@login_required
+@limiter.limit('30 per minute')
+def delete_template(id):
+    template=owned_template(id);db.session.delete(template);db.session.commit();flash('Meta predefinida removida.','success')
+    return redirect(url_for('goals.templates'))
 @bp.route('/<int:id>/edit',methods=['GET','POST'])
 @login_required
 @limiter.limit('30 per minute', methods=['POST'])
@@ -65,6 +137,10 @@ def save_goal(g):
     # o formulário for redesenhado, o que o usuário digitou continua visível em vez de
     # reaparecer como o atributo ainda não definido (None) do objeto recém-criado.
     g.title=title;g.description=request.form.get('description','').strip() or None;g.link_url=link_url or None;g.priority=request.form.get('priority','media');g.category=request.form.get('category','pessoal');g.status=request.form.get('status','pendente')
+    if len(title)>MAX_TITLE_LEN or (g.description and len(g.description)>MAX_DESCRIPTION_LEN):
+        flash('Titulo ou descricao excede o tamanho permitido.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
+    if g.priority not in GOAL_PRIORITIES or g.category not in CATEGORIES or g.status not in GOAL_STATUSES:
+        flash('Prioridade, categoria ou status invalido.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
     if not valid_link_url(link_url):
         flash('Informe um link válido que comece com http:// ou https://.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
     g.has_deadline='has_deadline' in request.form;g.show_on_board='show_on_board' in request.form
@@ -76,9 +152,19 @@ def save_goal(g):
     else:
         # Mantém uma data interna apenas para compatibilidade com bancos legados; ela nunca é exibida nem usada no planejamento.
         g.date=today(); g.time=None; g.recurrence_type='none'; g.recurrence_days=None; g.recurrence_end_date=None
-    g.recurrence_type=request.form.get('recurrence_type','none') if g.has_deadline else 'none';g.recurrence_days=int(request.form.get('recurrence_days') or 0) or None if g.has_deadline else None
+    g.recurrence_type=request.form.get('recurrence_type','none') if g.has_deadline else 'none'
+    if g.recurrence_type not in RECURRENCE_TYPES:
+        flash('Tipo de repeticao invalido.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
+    try: g.recurrence_days=int(request.form.get('recurrence_days') or 0) or None if g.has_deadline else None
+    except ValueError:
+        flash('Quantidade de dias invalida.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
+    if g.recurrence_type=='count' and not g.recurrence_days:
+        flash('Informe a quantidade de dias para a repeticao.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
     if g.recurrence_type=='forever': g.recurrence_end_date=None
-    elif request.form.get('recurrence_end_date'): g.recurrence_end_date=datetime.strptime(request.form['recurrence_end_date'],'%Y-%m-%d').date()
+    elif request.form.get('recurrence_end_date'):
+        try: g.recurrence_end_date=datetime.strptime(request.form['recurrence_end_date'],'%Y-%m-%d').date()
+        except ValueError:
+            flash('Data final invalida.','error');return render_template('goal_form.html',goal=g,categories=CATEGORIES)
     db.session.add(g);db.session.commit()
     for achievement in unlock_achievements(g.user): flash(f"🏆 Conquista desbloqueada: {achievement['title']}",'success')
     flash('Meta salva com sucesso.','success');return redirect(url_for('goals.index'))

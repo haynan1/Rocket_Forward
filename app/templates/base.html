@@ -21,6 +21,7 @@
     <nav aria-label="Navegação principal">
       <a class="{{ 'active' if endpoint == 'main.dashboard' }}" href="{{ url_for('main.dashboard') }}"><i class="bi bi-grid"></i><span>Início</span></a>
       <a class="{{ 'active' if endpoint in ('goals.index', 'goals.new', 'goals.edit') }}" href="{{ url_for('goals.index') }}"><i class="bi bi-check2-circle"></i><span>Metas</span></a>
+      <a class="{{ 'active' if endpoint in ('goals.templates', 'goals.new_template', 'goals.edit_template') }}" href="{{ url_for('goals.templates') }}"><i class="bi bi-bookmark-star"></i><span>Predefinidas</span></a>
       <a class="{{ 'active' if endpoint == 'goals.board' }}" href="{{ url_for('goals.board') }}"><i class="bi bi-kanban"></i><span>Esteira</span></a>
       <a class="{{ 'active' if endpoint == 'main.planning' }}" href="{{ url_for('main.planning') }}"><i class="bi bi-calendar3"></i><span>Plano</span></a>
       <a class="{{ 'active' if endpoint == 'main.history' }}" href="{{ url_for('main.history') }}"><i class="bi bi-bar-chart"></i><span>Histórico</span></a>

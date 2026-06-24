@@ -144,13 +144,6 @@ if(deadlineToggle){
  }
  const updateDeadline=()=>form.classList.toggle('no-deadline',!deadlineToggle.checked);
  updateDeadline();deadlineToggle.addEventListener('change',updateDeadline);
- const linkToggle=document.getElementById('has-link');
- const linkFields=document.getElementById('link-fields');
- const linkInput=form.querySelector('input[name="link_url"]');
- if(linkToggle&&linkFields&&linkInput){
-  const updateLink=()=>{linkFields.hidden=!linkToggle.checked;linkInput.disabled=!linkToggle.checked;};
-  updateLink();linkToggle.addEventListener('change',updateLink);
- }
  const recurrence=form.querySelector('select[name="recurrence_type"]');
  const updateRecurrence=()=>{
   const value=recurrence.value;
@@ -160,6 +153,28 @@ if(deadlineToggle){
   });
  };
  if(recurrence){updateRecurrence();recurrence.addEventListener('change',updateRecurrence);}
+}
+const linkToggle=document.getElementById('has-link');
+const linkFields=document.getElementById('link-fields');
+const linkInput=linkFields?.querySelector('input[name="link_url"]');
+if(linkToggle&&linkFields&&linkInput){
+ const updateLink=()=>{linkFields.hidden=!linkToggle.checked;linkInput.disabled=!linkToggle.checked;};
+ updateLink();linkToggle.addEventListener('change',updateLink);
+}
+const timeToggle=document.getElementById('has-time');
+const templateTimeFields=document.getElementById('template-time-fields');
+const templateTimeInput=templateTimeFields?.querySelector('input[name="time"]');
+if(timeToggle&&templateTimeFields&&templateTimeInput){
+ const updateTime=()=>{
+  const enabled=timeToggle.checked;
+  templateTimeFields.hidden=!enabled;
+  templateTimeInput.disabled=!enabled;
+  // O input de horário é convertido em um seletor visual mais abaixo neste arquivo.
+  // Mantemos o botão convertido no mesmo estado do input ao alternar esta opção.
+  const timeTrigger=templateTimeFields.querySelector('.time-trigger');
+  if(timeTrigger)timeTrigger.disabled=!enabled;
+ };
+ updateTime();timeToggle.addEventListener('change',updateTime);
 }
 const avatarInput=document.getElementById('avatar-input');
 if(avatarInput){

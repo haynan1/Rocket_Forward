@@ -20,12 +20,12 @@ def ensure_virtualenv() -> None:
         return
 
     if not VENV_PYTHON.exists():
-        print('🚀 Criando ambiente virtual...')
+        print('Criando ambiente virtual...')
         subprocess.check_call([sys.executable, '-m', 'venv', str(ROOT / 'venv')])
 
-    print('📦 Verificando dependências...')
+    print('Verificando dependências...')
     subprocess.check_call([str(VENV_PYTHON), '-m', 'pip', 'install', '-r', str(ROOT / 'requirements.txt')])
-    print('✨ Ambiente pronto. Iniciando Rocket Forward...')
+    print('Ambiente pronto. Iniciando Rocket Forward...')
     os.execv(str(VENV_PYTHON), [str(VENV_PYTHON), str(Path(__file__).resolve()), *sys.argv[1:]])
 
 

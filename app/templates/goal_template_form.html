@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if template else 'Nova' }} meta predefinida · Rocket Forward{% endblock %}
+{% block content %}
+<section class="form-wrap"><a href="{{ url_for('goals.templates') }}">← Voltar</a><h1>{{ 'Editar' if template else 'Nova' }} meta predefinida</h1><p>Cadastre o modelo agora. Ele só será ativado quando você decidir, depois de salvo.</p>
+<form method="post" class="panel goal-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Título<input name="title" required value="{{ template.title if template else '' }}" placeholder="Ex.: Finalizar capítulo 3"></label>
+  <label>Descrição<textarea name="description" placeholder="Uma nota opcional">{{ template.description if template and template.description else '' }}</textarea></label>
+  <div class="toggle-group">
+    <label class="toggle toggle-card link-toggle" for="has-link"><span class="toggle-switch"><input id="has-link" type="checkbox" {% if template and template.link_url %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text"><i class="bi bi-link-45deg"></i> Adicionar link <small>Inclua um atalho de apoio para esta meta.</small></span></label>
+    <section class="link-fields" id="link-fields"><label>Link de apoio<input type="url" name="link_url" value="{{ template.link_url if template and template.link_url else '' }}" placeholder="https://exemplo.com" inputmode="url"><small>Ele aparecerá como um atalho discreto, sem exibir a URL completa.</small></label></section>
+    <label class="toggle toggle-card" for="has-time"><span class="toggle-switch"><input id="has-time" type="checkbox" {% if template and template.time %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text"><i class="bi bi-clock"></i> Definir horário <small>Escolha um horário para acompanhar esta meta quando ativá-la.</small></span></label>
+    <label class="toggle toggle-card board-visibility-toggle" for="show-on-board"><span class="toggle-switch"><input id="show-on-board" type="checkbox" name="show_on_board" {% if not template or template.show_on_board %}checked{% endif %}><span class="toggle-track"><span class="toggle-thumb"></span></span></span><span class="toggle-text">Mostrar esta meta na Esteira <small>Você escolhe o que entra no seu fluxo.</small></span></label>
+  </div>
+  <section class="deadline-panel template-time-panel" id="template-time-fields"><p class="form-section-label">Quando fazer</p><label>Horário<input type="time" name="time" value="{{ template.time.strftime('%H:%M') if template and template.time else '' }}"></label><p class="field-help template-activation-help">A data não é definida aqui. Depois de salvar, escolha o dia para ativar esta meta no catálogo.</p></section>
+  <div class="form-section-label">Organização</div><div class="two"><label>Prioridade<select name="priority">{% for x in ['baixa','media','alta'] %}<option value="{{ x }}" {% if template and template.priority==x %}selected{% endif %}>{{ x|capitalize }}</option>{% endfor %}</select></label><label>Categoria<select name="category">{% for c in categories %}<option value="{{ c }}" {% if template and template.category==c %}selected{% endif %}>{{ c|capitalize }}</option>{% endfor %}</select></label></div>
+  <button>Cadastrar meta predefinida <i class="bi bi-bookmark-star"></i></button>
+</form></section>
+{% endblock %}

@@ -287,6 +287,30 @@ header { height: 34px; display: flex; justify-content: space-between; align-item
 .empty div { font-size: 40px; }
 .empty h2 { color: var(--text); }
 
+/* Catálogo de metas predefinidas */
+.template-intro { display: flex; align-items: center; gap: 14px; padding: 15px 18px; margin: 0 0 18px; }
+.template-intro > i { color: var(--primary-soft); font-size: 23px; }
+.template-intro strong { font: 600 15px 'Space Grotesk'; }
+.template-intro p { color: var(--muted); font-size: 13px; margin: 3px 0 0; }
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 14px; }
+.template-card { display: flex; flex-direction: column; padding: 18px; min-height: 290px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; transition: transform .2s ease, border-color .2s ease; }
+.template-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+.template-card-head, .template-actions { display: flex; justify-content: space-between; align-items: center; }
+.template-actions { gap: 4px; }
+.template-actions form { display: flex; }
+.template-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary-soft); }
+.template-card h2 { margin: 16px 0 6px; font: 600 19px 'Space Grotesk'; }
+.template-card > p { flex: 1; min-height: 38px; margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.template-card .goal-link { margin: 0 0 12px; }
+.template-activate { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px; padding-top: 15px; margin-top: 16px; border-top: 1px solid var(--border); }
+.template-activate label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.template-activate input { margin-top: 5px; padding: 9px; font-size: 13px; }
+.template-activate button { padding: 10px 13px; white-space: nowrap; }
+.template-empty { max-width: 650px; margin: 8vh auto; }
+.template-empty .btn { display: inline-block; margin-top: 10px; }
+.template-activation-help { display: block; margin: -3px 0 0; }
+.template-time-panel[hidden] { display: none; }
+
 blockquote {
   margin: 45px 0 0; padding: 20px 25px; border-left: 3px solid var(--primary);
   background: color-mix(in srgb, var(--primary) 8%, transparent);
@@ -542,6 +566,7 @@ select, input, textarea {
   .hero { align-items: flex-start; }
   .hero .btn { padding: 11px 13px; font-size: 12px; }
   .goal-card { gap: 9px; padding: 13px; }
+  .template-grid { grid-template-columns: 1fr 1fr; }
   .goal-date { font-size: 12px; }
   .icon-btn { display: none; }
   .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -696,6 +721,10 @@ body.sidebar-collapsed .rocket-toggle i { transform: rotate(180deg); }
   .profile-links a { white-space: normal; font-size: 12px; }
   .phrase-settings { margin-left: 0; justify-self: stretch; }
   .achievements { grid-template-columns: 1fr; }
+  .template-grid { grid-template-columns: 1fr; }
+  .template-card { min-height: 0; }
+  .template-activate { grid-template-columns: 1fr; }
+  .template-activate button { width: 100%; }
   .achievement { padding: 14px; }
   .premium-hero { margin: 34px auto; }
   .premium-hero h1, .paywall h1 { font-size: 34px; }

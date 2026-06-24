@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required,current_user
 from PIL import Image, UnidentifiedImageError
 from ..extensions import db, limiter
-from ..models import Goal, UserAchievement, MotivationalPhrase
+from ..models import Goal, GoalTemplate, UserAchievement, MotivationalPhrase
 from ..services import today,goals_for,stats,completed_dates,unlock_achievements
 from ..services.achievements_data import ACHIEVEMENT_DEFINITIONS
 from ..services.phrases import DEFAULT_MOTIVATIONAL_PHRASES, current_phrase, phrases_for
@@ -121,7 +121,11 @@ def remove_avatar():
 @login_required
 @limiter.limit('10 per minute')
 def clear_data():
-    Goal.query.filter_by(user_id=current_user.id).delete();UserAchievement.query.filter_by(user_id=current_user.id).delete();db.session.commit();flash('Dados da missão removidos. Sua conta foi preservada.','success');return redirect(url_for('main.profile'))
+    # ORM deletion preserves recurring-goal dependent records on all databases.
+    for goal in Goal.query.filter_by(user_id=current_user.id): db.session.delete(goal)
+    for template in GoalTemplate.query.filter_by(user_id=current_user.id): db.session.delete(template)
+    UserAchievement.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit();flash('Dados removidos. Sua conta foi preservada.','success');return redirect(url_for('main.profile'))
 @bp.get('/achievements')
 @login_required
 def achievements():

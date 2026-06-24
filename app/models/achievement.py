@@ -16,4 +16,4 @@ class UserAchievement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     achievement_id = db.Column(db.Integer, db.ForeignKey('achievement.id'), nullable=False)
-    unlocked_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    unlocked_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
