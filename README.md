@@ -31,31 +31,7 @@ Quando você termina uma missão, marca como concluída. Assim, ganha XP, conqui
 
 Você precisa ter o **Python** instalado no computador. Python é uma ferramenta que faz o foguete funcionar.
 
-### Passo 1: faça a chave secreta
-
-Na pasta do Rocket Forward, copie o arquivo de exemplo:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Agora abra o arquivo chamado `.env` com o Bloco de Notas.
-
-Crie uma chave com este comando:
-
-```powershell
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Copie o resultado e coloque depois do sinal `=`:
-
-```env
-SECRET_KEY=cole_a_chave_grande_aqui
-```
-
-> A chave secreta é como a chave da porta de casa. Não mostre para outras pessoas.
-
-### Passo 2: ligue o foguete
+### Passo 1: ligue o foguete
 
 Abra o PowerShell dentro da pasta do projeto e escreva:
 
@@ -63,9 +39,9 @@ Abra o PowerShell dentro da pasta do projeto e escreva:
 python run.py
 ```
 
-Na primeira vez, o projeto prepara sozinho uma caixinha de ferramentas chamada `venv`. Isso pode demorar alguns minutos. Depois, é só esperar a mensagem de que o servidor está funcionando.
+Na primeira vez, o projeto prepara tudo sozinho: cria o arquivo `.env`, gera a chave secreta, prepara a caixinha de ferramentas chamada `venv`, instala as dependências e reinicia usando o Python da própria `venv`. Isso pode demorar alguns minutos. Depois, é só esperar a mensagem de que o servidor está funcionando.
 
-### Passo 3: abra a página
+### Passo 2: abra a página
 
 Abra o navegador e visite:
 
