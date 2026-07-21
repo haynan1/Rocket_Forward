@@ -11,6 +11,7 @@
     </div>
   </div>
   <div class="goal-date">{% if row.goal.has_deadline %}{{row.date.strftime('%d/%m')}}{% if row.goal.time %}<small>{{row.goal.time.strftime('%H:%M')}}</small>{% endif %}{% else %}<small>Sem prazo</small>{% endif %}</div>
+  {% if not row.goal.has_deadline and row.status!='concluida' %}<form method="post" action="{{url_for('goals.activate_today',id=row.goal.id)}}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Mover para hoje"><i class="bi bi-calendar-plus"></i></button></form>{% endif %}
   <a href="{{url_for('goals.edit',id=row.goal.id)}}" class="icon-btn" title="Editar"><i class="bi bi-pencil"></i></a>
   <form method="post" action="{{url_for('goals.delete',id=row.goal.id)}}" onsubmit="return confirm('Remover esta meta?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-btn" title="Remover"><i class="bi bi-trash3"></i></button></form>
 </article>

@@ -180,6 +180,16 @@ def toggle(id):
     _,achievements=set_status(g,'pendente' if current=='concluida' else 'concluida',occurrence,include_achievements=True)
     for achievement in achievements: flash(f"🏆 Conquista desbloqueada: {achievement['title']}",'success')
     return redirect(request.referrer or url_for('goals.index'))
+@bp.post('/<int:id>/activate-today')
+@login_required
+@limiter.limit('60 per minute')
+def activate_today(id):
+    g=owned(id)
+    if g.status=='concluida':
+        flash('Esta meta ja esta concluida. Reabra a meta antes de mover para hoje.','error');return redirect(request.referrer or url_for('goals.index'))
+    g.has_deadline=True;g.date=today();g.show_on_board=True;g.recurrence_type='none';g.recurrence_days=None;g.recurrence_end_date=None
+    db.session.commit();flash('Meta movida para hoje.','success')
+    return redirect(url_for('goals.board'))
 @bp.post('/<int:id>/delete')
 @login_required
 @limiter.limit('30 per minute')

@@ -116,6 +116,30 @@ def test_undated_board_backlog_is_limited_to_ten_goals(app, client):
     assert b'11 metas guardadas aqui' in response.data
 
 
+def test_user_can_activate_undated_goal_for_today_with_one_click(app, client):
+    _register(client, 'activate-undated@rocket.test')
+    with app.app_context():
+        user = User.query.filter_by(email='activate-undated@rocket.test').first()
+        goal = Goal(user=user, title='ativar depois', date=today() - timedelta(days=1), has_deadline=False, show_on_board=True)
+        db.session.add(goal)
+        db.session.commit()
+        goal_id = goal.id
+
+    response = client.get('/goals/board')
+    assert b'ativar depois' in response.data
+    assert 'Fazer hoje'.encode() in response.data
+
+    response = client.post(f'/goals/{goal_id}/activate-today', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'ativar depois' in response.data
+    with app.app_context():
+        goal = db.session.get(Goal, goal_id)
+        assert goal.has_deadline is True
+        assert goal.date == today()
+        assert goal.show_on_board is True
+
+
 def test_goal_link_is_saved_and_rendered_as_a_shortcut(app, client):
     _register(client, 'goal-link@rocket.test')
 

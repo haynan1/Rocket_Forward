@@ -33,3 +33,9 @@ def test_goal_without_deadline_is_not_planned(app):
   assert goals_for(u,date.today(),date.today()) == []
   rows=goals_for(u,date.today(),date.today(),include_undated=True)
   assert len(rows)==1 and rows[0]['date'] is None and not rows[0]['goal'].has_deadline
+def test_old_goal_without_deadline_stays_in_backlog(app):
+ from app.services import goals_for
+ with app.app_context():
+  u=user();g=Goal(user=u,title='sem prazo antiga',date=date.today()-timedelta(days=1),has_deadline=False);db.session.add(g);db.session.commit()
+  rows=goals_for(u,date.today(),date.today(),include_undated=True)
+  assert len(rows)==1 and rows[0]['goal'].title=='sem prazo antiga' and rows[0]['date'] is None

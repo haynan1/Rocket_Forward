@@ -26,7 +26,12 @@ def goals_for(user, start, end, include_undated=False):
     # dentro da janela; metas avulsas (recurrence_type='none') só importam se a própria
     # data delas cair na janela — isso evita carregar todo o histórico avulso do usuário.
     # selectinload evita N+1: sem isso, cada meta dispara uma query separada para suas overrides.
-    base=Goal.query.options(selectinload(Goal.overrides)).filter_by(user_id=user.id).filter(Goal.date <= end).filter(db.or_(Goal.recurrence_type != 'none', Goal.date >= start)).all(); rows=[]
+    query=Goal.query.options(selectinload(Goal.overrides)).filter_by(user_id=user.id).filter(Goal.date <= end)
+    if include_undated:
+        query=query.filter(db.or_(Goal.has_deadline == False, Goal.recurrence_type != 'none', Goal.date >= start))
+    else:
+        query=query.filter(Goal.has_deadline == True).filter(db.or_(Goal.recurrence_type != 'none', Goal.date >= start))
+    base=query.all(); rows=[]
     for g in base:
         if not g.has_deadline:
             if include_undated:
